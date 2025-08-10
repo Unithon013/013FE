@@ -5,7 +5,7 @@ export const fontFamily = {
   bold: "Pretendard-Bold",
 } as const;
 
-export const typography = {
+export const Typo = {
   h1: { fontFamily: fontFamily.bold, fontSize: 28, lineHeight: 36 },
   h2: { fontFamily: fontFamily.semibold, fontSize: 24, lineHeight: 32 },
   h3: { fontFamily: fontFamily.semibold, fontSize: 20, lineHeight: 28 },
@@ -15,4 +15,4 @@ export const typography = {
   caption: { fontFamily: fontFamily.medium, fontSize: 12, lineHeight: 16 },
 } as const;
 
-export type TextVariant = keyof typeof typography;
+export type TextVariant = keyof typeof Typo;
