@@ -2,7 +2,7 @@ import { View, Text, Pressable, Animated, Easing } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { colors, typography } from "@/constants";
-import { Ai1 } from "@/assets";
+import { Ai2 } from "@/assets";
 import { useEffect, useRef } from "react";
 
 export default function Splash() {
@@ -36,7 +36,7 @@ export default function Splash() {
   return (
     <Pressable
       style={{ flex: 1 }}
-      onPress={() => router.push("/(onboarding)/2_splash2")}
+      onPress={() => router.push("/(onboarding)/3_call_start")}
     >
       <View
         style={{
@@ -94,10 +94,10 @@ export default function Splash() {
             transform: [{ translateY: bobY }],
           }}
         >
-          <Ai1 />
+          <Ai2 />
         </Animated.View>
         <LinearGradient
-          colors={[colors.primary, colors.white]}
+          colors={[colors.primary, "white"]}
           style={{
             position: "absolute",
             top: "50%",

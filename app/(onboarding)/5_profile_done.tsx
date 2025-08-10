@@ -1,13 +1,59 @@
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
+import { colors, typography } from "@/constants";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function ProfileDone() {
   const router = useRouter();
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>프로필 등록 완료 🎉</Text>
+    <View style={{ alignItems: "center", justifyContent: "center" }}>
       <Pressable onPress={() => router.replace("/(tabs)/home")}>
-        <Text>홈으로 이동</Text>
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <Text
+            style={[
+              typography.h0,
+              {
+                color: colors.primary,
+                marginVertical: 3,
+                textShadowColor: "rgba(0, 0, 0, 0.1)",
+                textShadowOffset: { width: 1, height: 1 }, // 그림자 위치
+                textShadowRadius: 3, // 그림자 퍼짐 정도
+              },
+            ]}
+          >
+            프로필 등록이
+          </Text>
+          <Text
+            style={[
+              typography.h0,
+              {
+                color: colors.textblack,
+                marginVertical: 3,
+                textShadowColor: "rgba(0, 0, 0, 0.1)",
+                textShadowOffset: { width: 1, height: 1 }, // 그림자 위치
+                textShadowRadius: 3, // 그림자 퍼짐 정도
+              },
+            ]}
+          >
+            완료되었습니다.
+          </Text>
+          <Text
+            style={[
+              typography.h1,
+              {
+                color: colors.textblack,
+                marginVertical: 3,
+                textShadowColor: "rgba(0, 0, 0, 0.1)",
+                textShadowOffset: { width: 1, height: 1 }, // 그림자 위치
+                textShadowRadius: 3, // 그림자 퍼짐 정도
+              },
+            ]}
+          >
+            불씨를 시작해볼까요?
+          </Text>
+        </View>
       </Pressable>
     </View>
   );
