@@ -15,3 +15,4 @@ config.resolver.assetExts = config.resolver.assetExts.filter(
 config.resolver.sourceExts.push("svg");
 
 module.exports = config;
+
