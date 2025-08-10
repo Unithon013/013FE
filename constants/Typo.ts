@@ -6,6 +6,7 @@ export const fontFamily = {
 } as const;
 
 export const typography = {
+  h0: { fontFamily: fontFamily.bold, fontSize: 40, lineHeight: 40 },
   h1: { fontFamily: fontFamily.bold, fontSize: 28, lineHeight: 36 },
   h2: { fontFamily: fontFamily.semibold, fontSize: 24, lineHeight: 32 },
   h3: { fontFamily: fontFamily.semibold, fontSize: 20, lineHeight: 28 },

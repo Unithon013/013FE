@@ -1,22 +1,6 @@
-import { View, Text, Pressable } from "react-native";
-import { Link } from "expo-router";
+import { useEffect } from "react";
+import { Redirect } from "expo-router";
 
-export default function Home() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 16,
-      }}
-    >
-      <Text>Home (Expo Router + TS)</Text>
-      <Link href="(tabs)/home" asChild>
-        <Pressable>
-          <Text>Go to Tabs/Home</Text>
-        </Pressable>
-      </Link>
-    </View>
-  );
+export default function Index() {
+  return <Redirect href="/(onboarding)/1_launsh" />;
 }
