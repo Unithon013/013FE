@@ -8,7 +8,9 @@ export default function ProfileDone() {
   const router = useRouter();
   return (
     <View style={{ alignItems: "center", justifyContent: "center" }}>
-      <Pressable onPress={() => router.replace("/(tabs)/BottomTabs")}>
+
+      <Pressable onPress={() => router.replace("/(onboarding)/6_start")}>
+
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
@@ -39,20 +41,6 @@ export default function ProfileDone() {
             ]}
           >
             완료되었습니다.
-          </Text>
-          <Text
-            style={[
-              typography.h1,
-              {
-                color: colors.textblack,
-                marginVertical: 3,
-                textShadowColor: "rgba(0, 0, 0, 0.1)",
-                textShadowOffset: { width: 1, height: 1 }, // 그림자 위치
-                textShadowRadius: 3, // 그림자 퍼짐 정도
-              },
-            ]}
-          >
-            불씨를 시작해볼까요?
           </Text>
         </View>
       </Pressable>

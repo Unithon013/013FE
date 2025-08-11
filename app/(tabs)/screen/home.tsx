@@ -8,11 +8,14 @@ import {
   FlatList,
   Dimensions,
   StyleSheet,
-  ViewToken, FlatListProps,
+  ViewToken,
+  FlatListProps,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import HomeCharacter from '../../../assets/home_character.svg';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import HomeCharacter from "../../../assets/home_character.svg";
 import { colors, typography } from "../../../constants";
 
 type Profile = {
@@ -24,7 +27,7 @@ type Profile = {
 };
 
 const { width } = Dimensions.get("window");
-const PAGE_WIDTH = width;                    // FlatList 페이징 단위
+const PAGE_WIDTH = width; // FlatList 페이징 단위
 const CARD_RADIUS = 27;
 
 const DATA: Profile[] = [
@@ -44,7 +47,7 @@ const DATA: Profile[] = [
     photo:
       "https://images.unsplash.com/photo-1598550476439-6847785fcea1?q=80&w=1200&auto=format&fit=crop",
   },
-  {   
+  {
     id: "3",
     name: "이순자",
     age: 70,
@@ -60,13 +63,13 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
 
   const onViewRef = useRef<
-  NonNullable<FlatListProps<Profile>["onViewableItemsChanged"]>
->(({ viewableItems }) => {
-  const first = viewableItems[0];
-  if (first && first.index !== null && first.index !== undefined) {
-    setIndex(first.index);
-  }
-}).current;
+    NonNullable<FlatListProps<Profile>["onViewableItemsChanged"]>
+  >(({ viewableItems }) => {
+    const first = viewableItems[0];
+    if (first && first.index !== null && first.index !== undefined) {
+      setIndex(first.index);
+    }
+  }).current;
 
   const viewabilityConfig = useMemo(
     () => ({ viewAreaCoveragePercentThreshold: 60 }),
@@ -123,9 +126,11 @@ export default function HomeScreen() {
             <Text style={styles.heroLine1}>
               불씨 AI가 <Text style={{ fontWeight: "700" }}>김숭실님</Text>의
             </Text>
-            <Text style={styles.heroLine2}>소개 영상을 분석해 친구를 찾고 있어요.</Text>
+            <Text style={styles.heroLine2}>
+              소개 영상을 분석해 친구를 찾고 있어요.
+            </Text>
           </View>
-          <HomeCharacter width={80} height={80}/>
+          <HomeCharacter width={80} height={80} />
         </View>
       </View>
 
@@ -149,7 +154,7 @@ export default function HomeScreen() {
             })}
           />
         </View>
-        
+
         {/* 하단 이전 / 다음 버튼 */}
         <View style={styles.footer}>
           <Pressable
@@ -165,7 +170,10 @@ export default function HomeScreen() {
           <Pressable
             onPress={goNext}
             disabled={index === DATA.length - 1}
-            style={[styles.nextBtn, index === DATA.length - 1 && styles.disabled]}
+            style={[
+              styles.nextBtn,
+              index === DATA.length - 1 && styles.disabled,
+            ]}
           >
             <Text style={styles.nextText}>다음</Text>
           </Pressable>
@@ -175,7 +183,6 @@ export default function HomeScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
   topHero: {
     backgroundColor: colors.primary,
@@ -184,17 +191,16 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
   },
   textWrapper: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center', 
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  heroLine1: { 
-    color: colors.white, 
-    ...typography.body, marginBottom: 2 
-  },
-  heroLine2: { color: colors.white,
+  heroLine1: {
+    color: colors.white,
     ...typography.body,
-    fontWeight: "600" },
+    marginBottom: 2,
+  },
+  heroLine2: { color: colors.white, ...typography.body, fontWeight: "600" },
   page: {
     width: PAGE_WIDTH,
     paddingHorizontal: 16,
@@ -210,7 +216,7 @@ const styles = StyleSheet.create({
   },
   middle: {
     flex: 1,
-    justifyContent: "center", 
+    justifyContent: "center",
     paddingTop: 30,
     paddingBottom: 8,
   },
@@ -235,7 +241,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: CARD_RADIUS,
   },
   bottomWrapper: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 30,
   },
   nameLine1: { color: colors.white, fontSize: 18, fontWeight: "700" },
@@ -253,9 +259,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 15,
   },
-  videoBtnText: { color: colors.white,
-    ...typography.sub,
-  },
+  videoBtnText: { color: colors.white, ...typography.sub },
   footer: {
     flexDirection: "row",
     gap: 16,
@@ -272,9 +276,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.white,
   },
-  prevText: { color: colors.textSub1, 
-    ...typography.h2,
-  },
+  prevText: { color: colors.textSub1, ...typography.h2 },
 
   nextBtn: {
     flex: 1,
@@ -284,7 +286,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  nextText: { 
+  nextText: {
     color: colors.white,
     ...typography.h2,
   },
