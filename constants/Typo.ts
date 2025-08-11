@@ -17,4 +17,4 @@ export const typography = {
   caption: { fontFamily: fontFamily.medium, fontSize: 12, lineHeight: 16 },
 } as const;
 
-export type TextVariant = keyof typeof Typo;
+export type TextVariant = keyof typeof typography;

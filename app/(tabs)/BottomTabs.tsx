@@ -9,7 +9,7 @@ import {
 } from '../../components/icon/bottombar';
 import TextLogo from '../../assets/textLogo.svg';
 //폰트, 컬러
-import { Colors, Typo } from "../../constants";
+import { colors, typography } from "../../constants";
 
 import { Text, View } from 'react-native';
 
@@ -34,7 +34,7 @@ const HeaderTitle = ({ title }: { title: string }) => (
       alignItems: 'center',
     }}
   >
-    <Text style={{ ...Typo.body, color: Colors.textblack }}>
+    <Text style={{ ...typography.body, color: colors.textblack }}>
       {title}
     </Text>
   </View>
@@ -44,8 +44,8 @@ const HeaderTitle = ({ title }: { title: string }) => (
 const TabLabel = ({ focused, label }: { focused: boolean; label: string }) => (
   <Text
     style={[
-      Typo.body,
-      { color: focused ? Colors.primary : Colors.textSub1 },
+      typography.body,
+      { color: focused ? colors.primary : colors.textSub1 },
     ]}
   >
     {label}
@@ -60,7 +60,7 @@ export default function BottomTabs() {
         headerShown: true,
         headerStyle: {
           height: 48 + insets.top,
-          backgroundColor: Colors.white,
+          backgroundColor: colors.white,
           shadowColor: 'transparent',
           elevation: 0,
         },
@@ -71,8 +71,8 @@ export default function BottomTabs() {
           paddingTop: 5,
           backgroundColor: '#FFFFFF',
         },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textSub1,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSub1,
       }}
     >
       <Tab.Screen
@@ -81,7 +81,7 @@ export default function BottomTabs() {
         options={{
           headerShown: false,
           headerTitle: () => <View />,
-          headerStyle: { backgroundColor: Colors.primary },
+          headerStyle: { backgroundColor: colors.primary },
           headerLeft: () => (
             <View style={{ paddingLeft: 12 }}>
               <TextLogo width={90} height={30} />
@@ -89,7 +89,7 @@ export default function BottomTabs() {
           ),
           tabBarIcon: ({ focused }) => (
             <HomeIcon
-              color={focused ? Colors.primary : Colors.textSub1}
+              color={focused ? colors.primary : colors.textSub1}
               width={25}
               height={25}
             />
@@ -106,7 +106,7 @@ export default function BottomTabs() {
           headerTitle: () => <HeaderTitle title="채팅" />,
           tabBarIcon: ({ focused }) => (
             <ChatIcon
-              color={focused ? Colors.primary : Colors.textSub1}
+              color={focused ? colors.primary : colors.textSub1}
               width={23}
               height={23}
             />
@@ -123,7 +123,7 @@ export default function BottomTabs() {
           headerTitle: () => <HeaderTitle title="상점" />,
           tabBarIcon: ({ focused }) => (
             <StoreIcon
-              color={focused ? Colors.primary : Colors.textSub1}
+              color={focused ? colors.primary : colors.textSub1}
               width={26}
               height={26}
             />
@@ -140,7 +140,7 @@ export default function BottomTabs() {
           headerTitle: () => <HeaderTitle title="마이 페이지" />,
           tabBarIcon: ({ focused }) => (
             <MyPageIcon
-              color={focused ? Colors.primary : Colors.textSub1}
+              color={focused ? colors.primary : colors.textSub1}
               width={34}
               height={34}
             />

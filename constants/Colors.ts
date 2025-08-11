@@ -1,4 +1,4 @@
-export const Colors = {
+export const colors = {
   white: "#FFFFFF",
   black: "#000000",
   textblack: "#1D1D1D", // 텍스트 메인 컬러

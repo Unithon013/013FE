@@ -13,7 +13,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import HomeCharacter from '../../../assets/home_character.svg';
-import { Colors, Typo } from "../../../constants";
+import { colors, typography } from "../../../constants";
 
 type Profile = {
   id: string;
@@ -115,7 +115,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.primary }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
       {/* 상단 오렌지 영역 (헤더 대체) */}
       <View style={styles.topHero}>
         <View style={styles.textWrapper}>
@@ -178,7 +178,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   topHero: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 18,
@@ -189,10 +189,12 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
   },
   heroLine1: { 
-    color: Colors.white, 
-    fontSize: 17, marginBottom: 2 
+    color: colors.white, 
+    ...typography.body, marginBottom: 2 
   },
-  heroLine2: { color: Colors.white, fontSize: 17, fontWeight: "600" },
+  heroLine2: { color: colors.white,
+    ...typography.body,
+    fontWeight: "600" },
   page: {
     width: PAGE_WIDTH,
     paddingHorizontal: 16,
@@ -236,9 +238,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 30,
   },
-  nameLine1: { color: Colors.white, fontSize: 18, fontWeight: "700" },
+  nameLine1: { color: colors.white, fontSize: 18, fontWeight: "700" },
   nameLine2: {
-    color: "#fff",
+    color: colors.white,
     fontSize: 28,
     fontWeight: "900",
     marginTop: 2,
@@ -246,12 +248,14 @@ const styles = StyleSheet.create({
   },
   videoBtn: {
     alignSelf: "flex-start",
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 18,
+    borderRadius: 15,
   },
-  videoBtnText: { color: "#fff", fontWeight: "700" },
+  videoBtnText: { color: colors.white,
+    ...typography.sub,
+  },
   footer: {
     flexDirection: "row",
     gap: 16,
@@ -263,22 +267,27 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: "#BDBDBD",
+    borderColor: colors.textSub1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
   },
-  prevText: { color: Colors.textblack, fontSize: 18, fontWeight: "700" },
+  prevText: { color: colors.textSub1, 
+    ...typography.h2,
+  },
 
   nextBtn: {
     flex: 1,
     height: 56,
-    borderRadius: 16,
-    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
-  nextText: { color: "#fff", fontSize: 18, fontWeight: "800" },
+  nextText: { 
+    color: colors.white,
+    ...typography.h2,
+  },
 
   disabled: { opacity: 0.4 },
   disabledText: { color: "#aaa" },
