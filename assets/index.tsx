@@ -40,3 +40,13 @@ export function Call() {
     />
   );
 }
+
+export function SoongsilKim() {
+  return (
+    <Image
+      source={require("@/assets/soongsilKim.png")}
+      style={{ width: 114, height: 129 }}
+      resizeMode="contain"
+    />
+  );
+}

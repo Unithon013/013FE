@@ -1,27 +1,27 @@
 // BottomTabs.tsx
-import React from 'react';
+import React from "react";
 //아이콘
 import {
   HomeIcon,
   ChatIcon,
   StoreIcon,
   MyPageIcon,
-} from '../../components/icon/bottombar';
-import TextLogo from '../../assets/textLogo.svg';
+} from "../../components/icon/bottombar";
+import TextLogo from "../../assets/textLogo.svg";
 //폰트, 컬러
 import { colors, typography } from "../../constants";
 
-import { Text, View } from 'react-native';
+import { Text, View } from "react-native";
 
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 //화면 아래 handle부분 처리
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 //각 화면 임포트 - Parent
-import HomeScreen from './screen/home';
-import ChatScreen from './screen/chat';
-import StoreScreen from './screen/store';
-import MypageScreen from './screen/mypage';
+import HomeScreen from "./screen/home";
+import ChatScreen from "./screen/chat";
+import StoreScreen from "./screen/store";
+import MypageScreen from "./screen/mypage";
 
 const Tab = createBottomTabNavigator();
 
@@ -30,15 +30,13 @@ const HeaderTitle = ({ title }: { title: string }) => (
   <View
     style={{
       padding: 12,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
     }}
   >
-    <Text style={{ ...typography.body, color: colors.textblack }}>
-      {title}
-    </Text>
+    <Text style={{ ...typography.body, color: colors.textblack }}>{title}</Text>
   </View>
-); 
+);
 
 // 공통 탭 라벨 컴포넌트
 const TabLabel = ({ focused, label }: { focused: boolean; label: string }) => (
@@ -61,15 +59,15 @@ export default function BottomTabs() {
         headerStyle: {
           height: 48 + insets.top,
           backgroundColor: colors.white,
-          shadowColor: 'transparent',
+          shadowColor: "transparent",
           elevation: 0,
         },
-        headerTitleAlign: 'center',
+        headerTitleAlign: "center",
         tabBarStyle: {
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 5,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: "#FFFFFF",
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSub1,
@@ -103,6 +101,7 @@ export default function BottomTabs() {
         name="Chat"
         component={ChatScreen}
         options={{
+          headerShown: false,
           headerTitle: () => <HeaderTitle title="채팅" />,
           tabBarIcon: ({ focused }) => (
             <ChatIcon
@@ -137,6 +136,7 @@ export default function BottomTabs() {
         name="MyPage"
         component={MypageScreen}
         options={{
+          headerShown: false,
           headerTitle: () => <HeaderTitle title="마이 페이지" />,
           tabBarIcon: ({ focused }) => (
             <MyPageIcon
