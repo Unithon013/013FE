@@ -1,5 +1,6 @@
 // assets/index.ts
-import { Image } from "react-native";
+import React from "react";
+import { Image, ImageProps } from "react-native";
 
 export function Logo() {
   return (
@@ -46,6 +47,27 @@ export function SoongsilKim() {
     <Image
       source={require("@/assets/soongsilKim.png")}
       style={{ width: 114, height: 129 }}
+      resizeMode="contain"
+    />
+  );
+}
+
+export function StoreHeader(props: Omit<ImageProps, "source">) {
+  return (
+    <Image
+      source={require("@/assets/store/header.png")}
+      resizeMode="contain"
+      {...props}
+      style={[{ width: "100%" }, props?.style]}
+    />
+  );
+}
+
+export function Tree() {
+  return (
+    <Image
+      source={require("@/assets/store/tree.png")}
+      style={{ width: 73, height: 65 }}
       resizeMode="contain"
     />
   );
