@@ -13,7 +13,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { colors, typography } from "../../../constants";
+import { colors, typography } from "@/constants";
 
 type Profile = {
   id: string;
@@ -197,12 +197,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   nameText: {
-    ...typography.h0,
+    ...typography.h1,
     color: colors.white,
     fontWeight: "700",
   },
   infoText: {
-    ...typography.h1,
+    ...typography.h3,
     color: colors.white,
     marginTop: 4,
   },

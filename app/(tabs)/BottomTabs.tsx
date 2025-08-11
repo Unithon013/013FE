@@ -119,6 +119,7 @@ export default function BottomTabs() {
         name="Store"
         component={StoreScreen}
         options={{
+          headerShown: false,
           headerTitle: () => <HeaderTitle title="상점" />,
           tabBarIcon: ({ focused }) => (
             <StoreIcon
