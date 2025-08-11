@@ -1,9 +1,14 @@
+import React from 'react';
 import { View, Text, Pressable, Animated, Easing } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { colors, typography } from "@/constants";
 import { Ai1 } from "@/assets";
 import { useEffect, useRef } from "react";
+
+useEffect(() => {
+  console.log('[Splash] mount');
+}, []);
 
 export default function Splash() {
   const router = useRouter();

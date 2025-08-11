@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -49,7 +50,7 @@ export default function PhoneStart() {
         </Text>
       </View>
       <Pressable
-        onPress={() => router.push("/(onboarding)/4_profile_call")}
+        onPress={() => router.push("/(onboarding)/4_face_camera")}
         style={{ marginBottom: 100, alignItems: "center" }}
       >
         <Call />

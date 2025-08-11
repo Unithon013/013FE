@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { colors, typography } from "@/constants";
@@ -7,7 +8,9 @@ export default function ProfileDone() {
   const router = useRouter();
   return (
     <View style={{ alignItems: "center", justifyContent: "center" }}>
+
       <Pressable onPress={() => router.replace("/(onboarding)/6_start")}>
+
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
