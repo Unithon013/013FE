@@ -8,7 +8,7 @@ export default function ProfileDone() {
   const router = useRouter();
   return (
     <View style={{ alignItems: "center", justifyContent: "center" }}>
-      <Pressable onPress={() => router.replace("/(tabs)/home")}>
+      <Pressable onPress={() => router.replace("/(tabs)/BottomTabs")}>
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >

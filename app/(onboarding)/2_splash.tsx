@@ -6,6 +6,10 @@ import { colors, typography } from "@/constants";
 import { Ai1 } from "@/assets";
 import { useEffect, useRef } from "react";
 
+useEffect(() => {
+  console.log('[Splash] mount');
+}, []);
+
 export default function Splash() {
   const router = useRouter();
   const bobY = useRef(new Animated.Value(0)).current;

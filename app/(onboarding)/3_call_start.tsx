@@ -50,7 +50,7 @@ export default function PhoneStart() {
         </Text>
       </View>
       <Pressable
-        onPress={() => router.push("/(onboarding)/4_profile_call")}
+        onPress={() => router.push("/(onboarding)/4_face_camera")}
         style={{ marginBottom: 100, alignItems: "center" }}
       >
         <Call />
