@@ -6,8 +6,9 @@ import {
   Pressable,
   Dimensions,
   StyleSheet,
+  ScrollView,
 } from "react-native";
-import { SoongsilKim, Video } from "@/assets";
+import { SoongsilKim, Video, OneLine, Chart, Circle } from "@/assets";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -70,7 +71,9 @@ export default function MypageScreen() {
             <SoongsilKim />
           </View>
           <View>
-            <Text style={styles.nameText}>김숭실</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={styles.nameText}>김숭실</Text>
+            </View>
             <Text style={styles.infoText}>75세 / 남자 / 미혼</Text>
             <View style={styles.tagsRow}>
               {["요리", "산책", "등산"].map((tag) => (
@@ -80,6 +83,9 @@ export default function MypageScreen() {
               ))}
             </View>
           </View>
+        </View>
+        <View style={styles.circleRight}>
+          <Circle />
         </View>
       </View>
 
@@ -114,22 +120,17 @@ export default function MypageScreen() {
         </View>
         {/* 콘텐츠 영역 */}
         {tab === "video" ? (
-          <>
+          <ScrollView>
             {typeof Video === "number" ||
             (Video && typeof Video === "object" && "uri" in (Video as any)) ? (
               <ImageBackground
                 source={Video as any}
                 style={styles.videoCard}
-                imageStyle={{ borderRadius: 16 }}
                 resizeMode="cover"
-              >
-                <View style={styles.playButton}>
-                  <Text style={styles.playIcon}>▶</Text>
-                </View>
-              </ImageBackground>
+              />
             ) : (
               <View style={styles.videoCard}>
-                <Video width={310} height={379} />
+                <Video width="100%" height={379} />
               </View>
             )}
             <Pressable
@@ -138,44 +139,44 @@ export default function MypageScreen() {
             >
               <Text style={styles.primaryCtaText}>다시 찍기</Text>
             </Pressable>
-          </>
+          </ScrollView>
         ) : (
-          <View style={styles.summaryWrap}>
+          <ScrollView style={styles.summaryWrap}>
             {/* 한줄 소개 */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>한줄 소개</Text>
-              <Text style={styles.sectionEdit}>✏️</Text>
             </View>
-            <View style={styles.cardBox}>
+            <ImageBackground
+              source={require("@/assets/mypage/1line.png")}
+              style={{
+                width: "100%",
+                height: 120,
+                justifyContent: "center",
+              }}
+              resizeMode="cover"
+            >
               <Text style={styles.oneLineText}>
-                노래, 등산 요리를 사랑하는 인생을 즐기는 사람입니다.
+                {"       "}노래, 등산 요리를 사랑하는
               </Text>
-            </View>
+              <Text style={styles.oneLineText}>
+                {"       "}인생을 즐기는 사람입니다.
+              </Text>
+            </ImageBackground>
 
             {/* AI 텍스트 */}
-            <Text style={[styles.sectionTitle]}>AI 텍스트</Text>
-            <View style={styles.cardBox}>
-              <View style={styles.aiHeader}>
-                <View style={styles.aiAvatar}>
-                  <SoongsilKim />
-                </View>
-                <Text style={styles.aiName}>김숭실</Text>
-              </View>
-              <Text style={styles.aiParagraph}>
-                안녕하세요, 저는 김숭실이고요, 올해 75살입니다.{"\n"}
-                아직 미혼이고, 노래 중에서는 트로트를 제일 좋아합니다.{"\n"}
-                시간 날 때는 등산도 자주 가고, 집에서 요리하는 것도 좋아합니다.
-                {"\n"}
-                동네에서 커피 마실 친구를 찾고싶습니다.
-              </Text>
-              <Pressable
-                style={styles.secondaryCta}
-                onPress={() => console.log("수정하기")}
-              >
-                <Text style={styles.secondaryCtaText}>수정하기</Text>
-              </Pressable>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle]}>내 프로필 수치</Text>
             </View>
-          </View>
+            <View style={{ alignItems: "center", marginVertical: 5 }}>
+              <Chart />
+            </View>
+            <Pressable
+              style={styles.primaryCta}
+              onPress={() => console.log("수정하기")}
+            >
+              <Text style={styles.primaryCtaText}>수정하기</Text>
+            </Pressable>
+          </ScrollView>
         )}
       </View>
     </SafeAreaView>
@@ -188,6 +189,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 18,
+    position: "relative",
   },
   textWrapper: {
     flexDirection: "row",
@@ -254,10 +256,11 @@ const styles = StyleSheet.create({
   tabActive: {},
   tabText: {
     ...typography.h2,
-    color: colors.textSub1,
+    color: colors.textSub3,
     fontWeight: "600",
   },
   tabTextActive: {
+    ...typography.h2,
     color: colors.textblack,
   },
   tabIndicator: {
@@ -268,8 +271,8 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
   },
   videoCard: {
-    width: 310,
-    height: 379,
+    width: "100%",
+    height: 391,
     alignSelf: "center",
     borderRadius: 16,
     overflow: "hidden",
@@ -302,12 +305,13 @@ const styles = StyleSheet.create({
   },
   primaryCta: {
     marginTop: 16,
-    marginHorizontal: 20,
     height: 56,
-    borderRadius: 20,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.primary,
+    alignSelf: "center",
+    width: 320,
   },
   primaryCtaText: {
     color: colors.white,
@@ -315,12 +319,13 @@ const styles = StyleSheet.create({
   },
 
   summaryWrap: {
-    marginHorizontal: 20,
+    marginHorizontal: 10,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    marginHorizontal: 10,
+    marginVertical: 5,
   },
   sectionTitle: {
     ...typography.h2,
@@ -332,9 +337,8 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   oneLineText: {
-    ...typography.body,
-    color: colors.textblack,
-    lineHeight: 24,
+    ...typography.title,
+    color: colors.white,
   },
   cardBox: {
     borderWidth: 2,
@@ -342,7 +346,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     backgroundColor: colors.white,
-    marginBottom: 24,
+    margin: 10,
   },
   aiHeader: {
     flexDirection: "row",
@@ -384,5 +388,12 @@ const styles = StyleSheet.create({
   secondaryCtaText: {
     color: colors.white,
     ...typography.h2,
+  },
+  circleRight: {
+    position: "absolute",
+    right: 20,
+    top: 22,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

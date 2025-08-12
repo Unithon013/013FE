@@ -2,6 +2,16 @@
 import React from "react";
 import { Image, ImageProps } from "react-native";
 
+export function Back() {
+  return (
+    <Image
+      source={require("@/assets/back.png")}
+      style={{ width: 20, height: 20 }}
+      resizeMode="contain"
+    />
+  );
+}
+
 export function ChatHeadB() {
   return (
     <Image
@@ -76,6 +86,32 @@ export function Video() {
     <Image
       source={require("@/assets/video.png")}
       style={{ width: 320, height: 391 }}
+      resizeMode="contain"
+    />
+  );
+}
+
+export function OneLine() {
+  return (
+    <Image source={require("@/assets/mypage/1line.png")} resizeMode="cover" />
+  );
+}
+
+export function Chart() {
+  return (
+    <Image
+      source={require("@/assets/mypage/chart.png")}
+      style={{ width: 310, height: 300 }}
+      resizeMode="contain"
+    />
+  );
+}
+
+export function Circle() {
+  return (
+    <Image
+      source={require("@/assets/mypage/circle.png")}
+      style={{ width: 50, height: 75 }}
       resizeMode="contain"
     />
   );

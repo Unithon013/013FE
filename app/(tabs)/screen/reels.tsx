@@ -11,7 +11,8 @@ import {
   useNavigation,
   useFocusEffect,
 } from "@react-navigation/native";
-import { colors, typography } from "../../../constants";
+import { colors, typography } from "@/constants";
+import { Back } from "@/assets";
 
 export default function ReelsPage() {
   const route = useRoute();
@@ -36,10 +37,11 @@ export default function ReelsPage() {
         resizeMode="cover"
       >
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Back />
           <Text style={styles.backText}>이전</Text>
         </Pressable>
         <View style={styles.overlay}>
-          <View>
+          <View style={{ justifyContent: "center", flex: 1 }}>
             <Text style={styles.nameLine1}>
               {district}, {age}세
             </Text>
@@ -94,6 +96,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     zIndex: 2,
+    flexDirection: "row",
+    alignItems: "center",
   },
   backText: { ...typography.h3, color: colors.white },
 });
