@@ -460,11 +460,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
   },
   stage: {
-    flex: 9,
+    flex: 7,
     backgroundColor: "#fff",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    paddingTop: 12,
+    paddingTop: 13,
   },
   middle: {
     flex: 1,
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   },
   dragBar: {
     alignSelf: "center",
-    width: 200, height: 6, borderRadius: 3, backgroundColor: "#CFCFCF", marginBottom: 16,
+    width: 150, height: 6, borderRadius: 2, backgroundColor: "#CFCFCF", marginBottom: 16,
   },
   infoPill: {
     alignSelf: "stretch",

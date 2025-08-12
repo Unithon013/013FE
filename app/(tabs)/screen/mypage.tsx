@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   stage: {
-    flex: 1,
+    flex: 9,
     backgroundColor: "#fff",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,

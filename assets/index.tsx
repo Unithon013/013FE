@@ -157,3 +157,13 @@ export function Tree() {
     />
   );
 }
+
+export function GroupCharacter() {
+  return (
+    <Image
+      source={require("@/assets/groupCharacter.png")}
+      style={{ width: 74, height:65}}
+      resizeMode="contain"
+    />
+  );
+}

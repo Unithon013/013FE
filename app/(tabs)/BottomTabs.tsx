@@ -6,6 +6,7 @@ import {
   ChatIcon,
   StoreIcon,
   MyPageIcon,
+  GroupIcon,
 } from "../../components/icon/bottombar";
 import TextLogo from "../../assets/textLogo.svg";
 //폰트, 컬러
@@ -23,6 +24,7 @@ import HomeScreen from "./screen/home";
 import ChatScreen from "./screen/chat/index";
 import Chat0Screen from "./screen/chat/chat_0";
 import StoreScreen from "./screen/store";
+import GroupScreen from "./screen/group";
 import MypageScreen from "./screen/mypage";
 import ReelsPage from "./screen/reels";
 
@@ -147,6 +149,30 @@ export default function BottomTabs() {
         }}
       />
       <Tab.Screen
+        name="Group"
+        component={GroupScreen}
+        options={{
+          headerShown: false,
+          headerTitle: () => <View />,
+          headerStyle: { backgroundColor: colors.primary },
+          headerLeft: () => (
+            <View style={{ paddingLeft: 12 }}>
+              <TextLogo width={90} height={30} />
+            </View>
+          ),
+          tabBarIcon: ({ focused }) => (
+            <GroupIcon
+              color={focused ? colors.primary : colors.textSub1}
+              width={33}
+              height={33}
+            />
+          ),
+          tabBarLabel: ({ focused }) => (
+            <TabLabel focused={focused} label="모임" />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Store"
         component={StoreScreen}
         options={{
@@ -178,7 +204,7 @@ export default function BottomTabs() {
             />
           ),
           tabBarLabel: ({ focused }) => (
-            <TabLabel focused={focused} label="마이페이지" />
+            <TabLabel focused={focused} label="설정" />
           ),
         }}
       />
