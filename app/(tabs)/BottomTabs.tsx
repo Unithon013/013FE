@@ -84,6 +84,7 @@ export default function BottomTabs() {
         },
         headerTitleAlign: "center",
         tabBarStyle: {
+          borderTopWidth: 0,
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 5,

@@ -12,6 +12,7 @@ export const typography = {
   h3: { fontFamily: fontFamily.semibold, fontSize: 20, lineHeight: 28 },
   title: { fontFamily: fontFamily.semibold, fontSize: 18, lineHeight: 26 },
   body: { fontFamily: fontFamily.regular, fontSize: 16, lineHeight: 24 },
+  bodyB: { fontFamily: fontFamily.bold, fontSize: 16, lineHeight: 24 },
   sub: { fontFamily: fontFamily.regular, fontSize: 14, lineHeight: 20 },
   subB: { fontFamily: fontFamily.bold, fontSize: 14, lineHeight: 20 },
   caption: { fontFamily: fontFamily.medium, fontSize: 12, lineHeight: 16 },

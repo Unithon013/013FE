@@ -59,7 +59,7 @@ export default function MypageScreen() {
   const [tab, setTab] = useState<"video" | "summary">("video");
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }} edges={['top']}>
       {/* 상단 오렌지 영역 (헤더 대체) */}
       <View style={styles.topHero}>
         <View style={styles.textWrapper}>
