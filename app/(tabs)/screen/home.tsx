@@ -15,7 +15,9 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import HomeCharacter from "../../../assets/home_character.svg";
+
+import { StatusBar } from "expo-status-bar";
+import { HomeCharacter } from "@/assets";
 import LockIcon from '@/assets/lock.svg';
 import { colors, typography } from "../../../constants";
 
@@ -32,6 +34,7 @@ type Profile = {
   district: string;
   photo: string; // 이미지 URL 또는 require()
 };
+
 type Item = { kind: "profile"; profile: Profile } | { kind: "cta" }; //마지막 숨겨진 카드
 
 const DATA: Profile[] = [
@@ -193,7 +196,7 @@ export default function HomeScreen() {
               소개 영상을 분석해 친구를 찾고 있어요.
             </Text>
           </View>
-          <HomeCharacter width={80} height={80} />
+          <HomeCharacter />
         </View>
       </View>
 

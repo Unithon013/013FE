@@ -14,16 +14,19 @@ import { colors, typography } from "../../constants";
 import { Text, View } from "react-native";
 
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 //화면 아래 handle부분 처리
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 //각 화면 임포트 - Parent
 import HomeScreen from "./screen/home";
-import ChatScreen from "./screen/chat";
+import ChatScreen from "./screen/chat/index";
+import Chat0Screen from "./screen/chat/chat_0";
 import StoreScreen from "./screen/store";
 import MypageScreen from "./screen/mypage";
 
 const Tab = createBottomTabNavigator();
+const ChatStack = createNativeStackNavigator();
 
 // 공통 헤더 타이틀 컴포넌트
 const HeaderTitle = ({ title }: { title: string }) => (
@@ -49,6 +52,23 @@ const TabLabel = ({ focused, label }: { focused: boolean; label: string }) => (
     {label}
   </Text>
 );
+
+function ChatStackScreen() {
+  return (
+    <ChatStack.Navigator screenOptions={{ headerShown: true }}>
+      <ChatStack.Screen
+        name="ChatList"
+        component={ChatScreen}
+        options={{ headerShown: false }}
+      />
+      <ChatStack.Screen
+        name="Chat0"
+        component={Chat0Screen}
+        options={{ title: "채팅방" }}
+      />
+    </ChatStack.Navigator>
+  );
+}
 
 export default function BottomTabs() {
   const insets = useSafeAreaInsets();
@@ -100,7 +120,7 @@ export default function BottomTabs() {
       />
       <Tab.Screen
         name="Chat"
-        component={ChatScreen}
+        component={ChatStackScreen}
         options={{
           headerShown: false,
           headerTitle: () => <HeaderTitle title="채팅" />,
