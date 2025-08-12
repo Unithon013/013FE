@@ -9,7 +9,7 @@ export default function PhoneStart() {
   const router = useRouter();
   return (
     <LinearGradient
-      colors={[colors.black, "rgba(0,0,0,0.7)"]}
+      colors={[colors.black, "rgba(0,0,0,0.8)"]}
       style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
     >
       <View
