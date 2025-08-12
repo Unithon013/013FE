@@ -15,17 +15,18 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
 
 import { StatusBar } from "expo-status-bar";
 import { HomeCharacter } from "@/assets";
-import LockIcon from '@/assets/lock.svg';
+import LockIcon from "@/assets/lock.svg";
 import { colors, typography } from "../../../constants";
 
 const { width } = Dimensions.get("window");
 const PAGE_WIDTH = width; //FlatList 페이징 단위
 const CARD_RADIUS = 27;
 const BASE_CARD_H = 520; //카드 기본 크기
-const MIDDLE_VPAD = 30 + 8; 
+const MIDDLE_VPAD = 30 + 8;
 
 type Profile = {
   id: string;
@@ -69,21 +70,22 @@ export default function HomeScreen() {
   const [profiles, setProfiles] = useState<Profile[]>(DATA); //프로필 리스트를 상태로
   const listRef = useRef<FlatList<Item>>(null);
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
 
-  const onViewRef =
-    useRef<NonNullable<FlatListProps<Item>["onViewableItemsChanged"]>>(
-      ({ viewableItems }) => {
-        const first = viewableItems[0];
-        if (first?.index != null) setIndex(first.index);
-      }
-  ).current;
+  const onViewRef = useRef<
+    NonNullable<FlatListProps<Item>["onViewableItemsChanged"]>
+  >(({ viewableItems }) => {
+    const first = viewableItems[0];
+    if (first?.index != null) setIndex(first.index);
+  }).current;
 
   //모든 카드리스트의 마지막은 cta카드 있음
   const items: Item[] = useMemo(
-  () => [
-    ...profiles.map((p) => ({ kind: "profile", profile: p } as Item)),
-    { kind: "cta" } as Item, ],
-  [profiles]
+    () => [
+      ...profiles.map((p) => ({ kind: "profile", profile: p } as Item)),
+      { kind: "cta" } as Item,
+    ],
+    [profiles]
   );
 
   const viewabilityConfig = useMemo(
@@ -94,7 +96,7 @@ export default function HomeScreen() {
   //카드 크기 조절
   const [middleH, setMiddleH] = useState(0);
   const cardH = Math.max(
-    280,                              //카드 크기 최소값
+    280, //카드 크기 최소값
     Math.min(BASE_CARD_H, middleH - MIDDLE_VPAD)
   );
 
@@ -104,9 +106,8 @@ export default function HomeScreen() {
   };
 
   const goNext = () =>
-    index < items.length - 1 && 
-    listRef.current?.scrollToIndex({ index: index + 1, animated: true }
-  );
+    index < items.length - 1 &&
+    listRef.current?.scrollToIndex({ index: index + 1, animated: true });
 
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const pendingScrollIndexRef = useRef<number | null>(null);
@@ -132,7 +133,7 @@ export default function HomeScreen() {
 
     if (more.length > 0) {
       setProfiles((prev) => [...prev, ...more]); // 새 카드들이 붙음
-      pendingScrollIndexRef.current = prevLen;   // 새 첫 카드로 이동
+      pendingScrollIndexRef.current = prevLen; // 새 첫 카드로 이동
     }
     setIsLoadingMore(false);
   };
@@ -142,11 +143,20 @@ export default function HomeScreen() {
       return (
         <View style={styles.page}>
           <View style={styles.cardShadow}>
-            <View style={[styles.card, { height: cardH, backgroundColor: "#222" }]}>
-              <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.35)" }]} />
+            <View
+              style={[styles.card, { height: cardH, backgroundColor: "#222" }]}
+            >
+              <View
+                style={[
+                  StyleSheet.absoluteFillObject,
+                  { backgroundColor: "rgba(0,0,0,0.35)" },
+                ]}
+              />
               <View style={styles.lockCenter}>
-                <Text style={styles.lockGuide}>장작을 태워 더 많은 추천을 받아보세요.</Text>
-                <LockIcon width={69} height={69}/>
+                <Text style={styles.lockGuide}>
+                  장작을 태워 더 많은 추천을 받아보세요.
+                </Text>
+                <LockIcon width={69} height={69} />
                 <Pressable style={styles.recommendBtn} onPress={fetchMore}>
                   <Text style={styles.recommendText}>추천받기</Text>
                 </Pressable>
@@ -163,16 +173,28 @@ export default function HomeScreen() {
         <View style={styles.cardShadow}>
           <ImageBackground
             source={{ uri: p.photo }}
-            style={[styles.card, { height: cardH }]}   
+            style={[styles.card, { height: cardH }]}
             imageStyle={{ borderRadius: CARD_RADIUS }}
-            resizeMode="cover"                  
+            resizeMode="cover"
           >
             <View style={styles.overlay}>
               <View>
-                <Text style={styles.nameLine1}>{p.district}, {p.age}세</Text>
+                <Text style={styles.nameLine1}>
+                  {p.district}, {p.age}세
+                </Text>
                 <Text style={styles.nameLine2}>{p.name}</Text>
               </View>
-              <Pressable style={styles.videoBtn} onPress={() => console.log("소개 영상 보러가기")}>
+              <Pressable
+                style={styles.videoBtn}
+                onPress={() =>
+                  navigation.navigate("ReelsPage", {
+                    imageUrl: p.photo,
+                    district: p.district,
+                    age: p.age,
+                    name: p.name,
+                  })
+                }
+              >
                 <Text style={styles.videoBtnText}>클릭해서</Text>
                 <Text style={styles.videoBtnText}>소개 영상 보기</Text>
               </Pressable>
@@ -184,7 +206,10 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: colors.primary }}
+      edges={["top"]}
+    >
       {/* 상단 오렌지 영역 (헤더 대체) */}
       <View style={styles.topHero}>
         <View style={styles.textWrapper}>
@@ -202,18 +227,27 @@ export default function HomeScreen() {
 
       <View style={styles.stage}>
         {/* 카드 스와이프 영역 */}
-        <View style={styles.middle} onLayout={(e) => setMiddleH(e.nativeEvent.layout.height)}>
+        <View
+          style={styles.middle}
+          onLayout={(e) => setMiddleH(e.nativeEvent.layout.height)}
+        >
           <FlatList
             ref={listRef}
             data={items}
-            keyExtractor={(it, i) => (it.kind === "profile" ? it.profile.id : `cta-${i}`)}
+            keyExtractor={(it, i) =>
+              it.kind === "profile" ? it.profile.id : `cta-${i}`
+            }
             renderItem={renderItem}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onViewableItemsChanged={onViewRef}
             viewabilityConfig={viewabilityConfig}
-            getItemLayout={(_, i) => ({ length: PAGE_WIDTH, offset: PAGE_WIDTH * i, index: i })}
+            getItemLayout={(_, i) => ({
+              length: PAGE_WIDTH,
+              offset: PAGE_WIDTH * i,
+              index: i,
+            })}
           />
         </View>
 
@@ -229,9 +263,14 @@ export default function HomeScreen() {
             </Text>
           </Pressable>
 
-          <Pressable 
-            onPress={goNext} disabled={index === items.length-1}
-            style={[styles.nextBtn, index === items.length-1 && styles.disabled]}>
+          <Pressable
+            onPress={goNext}
+            disabled={index === items.length - 1}
+            style={[
+              styles.nextBtn,
+              index === items.length - 1 && styles.disabled,
+            ]}
+          >
             <Text style={styles.nextText}>다음</Text>
           </Pressable>
         </View>
@@ -295,11 +334,13 @@ const styles = StyleSheet.create({
   overlay: {
     backgroundColor: "rgba(0,0,0,0.35)",
     padding: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     borderBottomLeftRadius: CARD_RADIUS,
     borderBottomRightRadius: CARD_RADIUS,
     flexDirection: "row",
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   bottomWrapper: {
     flexDirection: "row",
@@ -315,7 +356,7 @@ const styles = StyleSheet.create({
   },
   videoBtn: {
     alignSelf: "flex-start",
-    alignItems: 'center',
+    alignItems: "center",
     backgroundColor: colors.primary,
     paddingHorizontal: 15,
     paddingVertical: 8,
@@ -355,26 +396,30 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.4 },
   disabledText: { color: "#aaa" },
 
-  lockCenter: { ...StyleSheet.absoluteFillObject, 
-    alignItems: "center", 
-    justifyContent: "center", 
-    paddingBottom: 20 },
-  lockGuide: { color: "#fff", 
+  lockCenter: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 20,
+  },
+  lockGuide: {
+    color: "#fff",
     ...typography.bodyB,
-    textAlign: "center", 
+    textAlign: "center",
     marginBottom: 18,
-    textShadowColor: "rgba(0,0,0,0.3)", 
-    textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 6 
+    textShadowColor: "rgba(0,0,0,0.3)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 6,
   },
-  recommendBtn: { 
-    marginTop:14,
-    backgroundColor: colors.primary, 
-    borderRadius: 15, 
-    paddingHorizontal: 20, 
-    paddingVertical: 10 
+  recommendBtn: {
+    marginTop: 14,
+    backgroundColor: colors.primary,
+    borderRadius: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
-  recommendText: { 
-    color: colors.white, 
+  recommendText: {
+    color: colors.white,
     ...typography.h3,
   },
 });
