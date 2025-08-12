@@ -24,9 +24,19 @@ import ChatScreen from "./screen/chat/index";
 import Chat0Screen from "./screen/chat/chat_0";
 import StoreScreen from "./screen/store";
 import MypageScreen from "./screen/mypage";
+import ReelsPage from "./screen/reels";
 
 const Tab = createBottomTabNavigator();
 const ChatStack = createNativeStackNavigator();
+const HomeStack = createNativeStackNavigator();
+function HomeStackScreen() {
+  return (
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+      <HomeStack.Screen name="HomeScreen" component={HomeScreen} />
+      <HomeStack.Screen name="ReelsPage" component={ReelsPage} />
+    </HomeStack.Navigator>
+  );
+}
 
 // 공통 헤더 타이틀 컴포넌트
 const HeaderTitle = ({ title }: { title: string }) => (
@@ -96,7 +106,7 @@ export default function BottomTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStackScreen}
         options={{
           headerShown: false,
           headerTitle: () => <View />,

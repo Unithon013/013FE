@@ -9,6 +9,7 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -132,6 +133,7 @@ export default function ChatRoom0Screen() {
     };
     setMsgs((prev) => [...prev, newMsg]);
     setInput("");
+    Keyboard.dismiss();
     if (!hasSentFirstMessage) setHasSentFirstMessage(true);
   };
 
@@ -293,7 +295,7 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingTop: 8,
+    paddingVertical: 8,
     borderTopWidth: 1,
     borderTopColor: "#EEE",
     backgroundColor: colors.white,
@@ -304,6 +306,8 @@ const s = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: "#F3F3F3",
     paddingHorizontal: 14,
+    paddingVertical: 0, // ensure no extra vertical padding inside input
+    textAlignVertical: "center", // Android: center text vertically
     ...typography.sub,
     color: colors.textblack,
   },
