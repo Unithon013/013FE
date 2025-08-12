@@ -95,66 +95,6 @@ export default function Reels() {
     ]).start(() => setSheetOpen(false));
   };
 
-  // Upload test video function
-  const uploadTestVideo = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "video/*",
-      });
-      console.log("Picked file:", result);
-      if (result.canceled) return;
-      const formData = new FormData();
-      formData.append("video", {
-        uri: result.assets[0].uri,
-        name: result.assets[0].name || "test.mp4",
-        type: result.assets[0].mimeType || "video/mp4",
-      } as any);
-      formData.append("latitude", "37.5665");
-      formData.append("longitude", "126.9780");
-      console.log("Uploading to:", `${API_BASE_URL}/users/onboarding`);
-      const res = await fetch(`${API_BASE_URL}/users/onboarding`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Accept: "application/json",
-        },
-        body: formData,
-      });
-      console.log("Response status:", res.status);
-      // Log headers as object for readability
-      if (res.headers && typeof res.headers.forEach === "function") {
-        const headersObj: Record<string, string> = {};
-        res.headers.forEach((value, key) => {
-          headersObj[key] = value;
-        });
-        console.log("Response headers:", headersObj);
-      }
-      const data = await res.json();
-      console.log("Returned task_id:", data);
-    } catch (err) {
-      console.error("Upload error:", err);
-    }
-  };
-
-  const getUserMeTest = async () => {
-    try {
-      const url = `${API_BASE_URL}/users/me`;
-      console.log("Fetching user me:", url);
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "X-User-Id": "5",
-        },
-      });
-      console.log("UserMe Response status:", res.status);
-      const data = await res.json();
-      console.log("UserMe JSON body:", data);
-    } catch (err) {
-      console.error("UserMe fetch error:", err);
-    }
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.black }}>
       <ImageBackground
@@ -167,7 +107,7 @@ export default function Reels() {
           <Text style={styles.backText}> 이전 </Text>
         </Pressable>
         <View style={styles.overlay}>
-          <View style={{ justifyContent: "center", flex: 1 }}>
+          <View style={{ justifyContent: "flex-start", flex: 1 }}>
             <Text style={styles.nameLine1}>
               {district}, {age}세
             </Text>
@@ -175,28 +115,6 @@ export default function Reels() {
           </View>
           <Pressable style={styles.videoBtn} onPress={onPressCTA}>
             <Text style={styles.videoBtnText}>연락하기</Text>
-            <Pressable
-              style={{
-                padding: 10,
-                backgroundColor: "red",
-                alignSelf: "center",
-                marginVertical: 10,
-              }}
-              onPress={uploadTestVideo}
-            >
-              <Text style={{ color: "#fff" }}>테스트 업로드</Text>
-            </Pressable>
-            <Pressable
-              style={{
-                padding: 10,
-                backgroundColor: "blue",
-                alignSelf: "center",
-                marginVertical: 10,
-              }}
-              onPress={getUserMeTest}
-            >
-              <Text style={{ color: "#fff" }}>유저 조회</Text>
-            </Pressable>
           </Pressable>
         </View>
       </ImageBackground>
@@ -276,13 +194,18 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     position: "absolute",
     bottom: 0,
     width: "100%",
     height: 160,
   },
-  nameLine1: { color: colors.white, fontSize: 18, fontWeight: "700" },
+  nameLine1: {
+    marginTop: 5,
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: "700",
+  },
   nameLine2: {
     color: colors.white,
     fontSize: 28,
@@ -291,7 +214,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   videoBtn: {
-    alignSelf: "flex-start",
     alignItems: "center",
     backgroundColor: colors.primary,
     paddingHorizontal: 15,

@@ -29,6 +29,8 @@ import { StatusBar } from "expo-status-bar";
 import { HomeCharacter } from "@/assets";
 
 import { colors, typography } from "../../../constants";
+import { API_BASE_URL } from "@env";
+import * as VideoThumbnails from "expo-video-thumbnails";
 
 const { width } = Dimensions.get("window");
 const PAGE_WIDTH = width; //FlatList 페이징 단위
@@ -83,6 +85,157 @@ export default function HomeScreen() {
   const [profiles, setProfiles] = useState<Profile[]>(DATA); //프로필 리스트를 상태로
   const listRef = useRef<FlatList<Item>>(null);
   const insets = useSafeAreaInsets();
+  const [meName, setMeName] = useState<string>("");
+  const [meLat, setMeLat] = useState<number | null>(null);
+  const [meLng, setMeLng] = useState<number | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+    (async () => {
+      try {
+        // 위치가 필요한 API일 수 있으므로, 내 위치가 준비될 때까지 대기 (없어도 우선 시도)
+        const base = `${API_BASE_URL}/recommendations`;
+        const headers = {
+          Accept: "application/json",
+          // TODO: replace this test header with real auth header when ready
+          "X-User-Id": "5",
+        } as const;
+
+        const extractArray = (body: any): any[] | null => {
+          if (Array.isArray(body)) return body;
+          if (body && Array.isArray(body.content)) return body.content;
+          if (body && Array.isArray(body.data)) return body.data;
+          if (body && Array.isArray(body.results)) return body.results;
+          return null;
+        };
+
+        const tryFetch = async (url: string) => {
+          console.log("[home recs] Fetching:", url);
+          const res = await fetch(url, { method: "GET", headers });
+          console.log("[home recs] Status:", res.status);
+          if (
+            res.headers &&
+            typeof (res.headers as any).forEach === "function"
+          ) {
+            const headersObj: Record<string, string> = {};
+            (res.headers as any).forEach(
+              (v: string, k: string) => (headersObj[k] = v)
+            );
+            console.log("[home recs] Headers:", headersObj);
+          }
+          let body: any = null;
+          try {
+            body = await res.json();
+          } catch {}
+          console.log("[home recs] Body:", body);
+          return { res, body, list: extractArray(body) } as const;
+        };
+
+        // 시도 순서: 1) base  2) base?page/size  3) base?lat&lon  4) base?lat&lon&page/size
+        const urls: string[] = [base];
+        urls.push(`${base}?page=0&size=10`);
+        if (meLat != null && meLng != null) {
+          urls.push(`${base}?latitude=${meLat}&longitude=${meLng}`);
+          urls.push(
+            `${base}?latitude=${meLat}&longitude=${meLng}&page=0&size=10`
+          );
+        }
+
+        let finalList: any[] | null = null;
+        for (const u of urls) {
+          const { res, body, list } = await tryFetch(u);
+          if (res.ok && list && list.length) {
+            finalList = list;
+            break;
+          }
+          // 어떤 서버는 400이지만 본문에 data가 들어있을 수 있음
+          if (list && list.length) {
+            finalList = list;
+            break;
+          }
+        }
+
+        console.log(
+          "[home recs] Parsed length:",
+          finalList ? finalList.length : 0
+        );
+        if (!finalList || finalList.length === 0) return;
+
+        const toAbs = (u: string | null | undefined) => {
+          if (!u) return "";
+          return u.startsWith("http") ? u : `${API_BASE_URL}${u}`;
+        };
+        const parseAge = (a: any) => {
+          if (typeof a === "number") return a;
+          if (typeof a === "string") {
+            const m = a.match(/\d+/);
+            return m ? parseInt(m[0], 10) : NaN;
+          }
+          return NaN;
+        };
+        const parseHobbies = (h: any): string => {
+          if (Array.isArray(h)) return h.filter(Boolean).join(", ");
+          if (typeof h === "string") {
+            try {
+              const arr = JSON.parse(h);
+              if (Array.isArray(arr)) return arr.filter(Boolean).join(", ");
+            } catch {}
+            return h
+              .split(/[\s,\n]+/)
+              .map((s: string) => s.replace(/[\[\]"]+/g, "").trim())
+              .filter(Boolean)
+              .join(", ");
+          }
+          return "";
+        };
+
+        const mapped = await Promise.all(
+          finalList.map(async (it: any, idx: number) => {
+            const id = String(it?.id ?? idx + 1);
+            const name = it?.name ?? "";
+            const age = parseAge(it?.age);
+            const district = it?.location ?? it?.district ?? "";
+            const hobbies = parseHobbies(it?.hobbies);
+            const videoAbs = toAbs(it?.videoUrl ?? "");
+
+            let thumb = "";
+            if (videoAbs) {
+              try {
+                const { uri } = await VideoThumbnails.getThumbnailAsync(
+                  videoAbs,
+                  { time: 1000 }
+                );
+                thumb = uri;
+              } catch (e) {
+                console.log("[home recs] thumbnail error for", videoAbs, e);
+              }
+            }
+            const photo = thumb || toAbs(it?.profileUrl || "");
+
+            const p: Profile = {
+              id,
+              name,
+              age: Number.isFinite(age) ? (age as number) : 0,
+              district,
+              hobbies,
+              photo,
+            };
+            return p;
+          })
+        );
+
+        if (!isCancelled) {
+          const nonEmpty = mapped.filter((m) => !!m.name);
+          if (nonEmpty.length) setProfiles(nonEmpty);
+        }
+      } catch (e) {
+        console.log("[home recs] Fetch error:", e);
+      }
+    })();
+    return () => {
+      isCancelled = true;
+    };
+  }, [API_BASE_URL, meLat, meLng]);
 
   const onViewRef = useRef<
     NonNullable<FlatListProps<Item>["onViewableItemsChanged"]>
@@ -274,6 +427,40 @@ export default function HomeScreen() {
     ]).start();
   }, [sheetOpen, sheetReady]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const url = `${API_BASE_URL}/users/me`;
+        console.log("[users/me] Fetching:", url);
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            // TODO: replace this test header with real auth header when ready
+            "X-User-Id": "5",
+          },
+        });
+        console.log("[users/me] Status:", res.status);
+        if (res.headers && typeof res.headers.forEach === "function") {
+          const headersObj: Record<string, string> = {};
+          res.headers.forEach((value, key) => {
+            headersObj[key] = value;
+          });
+          console.log("[users/me] Headers:", headersObj);
+        }
+        const data = await res.json().catch(() => ({}));
+        console.log("[users/me] JSON:", data);
+        setMeName((data as any)?.name || "");
+        if (typeof (data as any)?.latitude === "number")
+          setMeLat((data as any).latitude);
+        if (typeof (data as any)?.longitude === "number")
+          setMeLng((data as any).longitude);
+      } catch (e: any) {
+        console.log("[users/me] Fetch error:", e?.name, e?.message);
+      }
+    })();
+  }, []);
+
   const closeSheet = () => {
     const h = sheetHRef.current || 500;
     Animated.parallel([
@@ -300,7 +487,11 @@ export default function HomeScreen() {
         <View style={styles.textWrapper}>
           <View>
             <Text style={styles.heroLine1}>
-              불씨 AI가 <Text style={{ fontWeight: "700" }}>김숭실님</Text>의
+              불씨 AI가{" "}
+              <Text style={{ fontWeight: "700" }}>
+                {meName ? `${meName}님` : "회원님"}
+              </Text>
+              의
             </Text>
             <Text style={styles.heroLine2}>
               소개 영상을 분석해 친구를 찾고 있어요.

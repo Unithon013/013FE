@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,10 +8,9 @@ import {
   TouchableOpacity,
   ListRenderItem,
 } from "react-native";
-import {
-  SafeAreaView,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, typography } from "@/constants";
+import { API_BASE_URL } from "@env";
 import { useNavigation } from "@react-navigation/native";
 
 // --- Dummy avatar requires (must be static for Metro bundler) ---
@@ -99,6 +98,61 @@ export default function ChatScreen() {
   const [page, setPage] = useState(0);
   const [data, setData] = useState<ChatItem[]>(() => makeChunk(0));
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const url = `${API_BASE_URL}/recommendations`;
+        console.log("[recs] Fetching:", url);
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            // TODO: replace this test header with real auth header when ready
+            "X-User-Id": "5",
+          },
+        });
+        console.log("[recs] Status:", res.status);
+        const body = await res.json();
+        console.log("[recs] JSON:", body);
+        if (!Array.isArray(body) || body.length === 0) return;
+        const first = body[0];
+
+        const parseHobbies = (h: any): string[] => {
+          if (Array.isArray(h)) return h.filter(Boolean);
+          if (!h || typeof h !== "string") return [];
+          // split by comma or space
+          return h
+            .split(/[\s,]+/)
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+        };
+
+        const name = first?.name ?? "";
+        const ageNum =
+          typeof first?.age === "number"
+            ? first.age
+            : parseInt(String(first?.age || ""), 10);
+        const location = first?.location ?? "";
+        const hobbiesArr = parseHobbies(first?.hobbies);
+        const tags = [location, ...hobbiesArr].filter(Boolean).slice(0, 3);
+
+        setData((prev) => {
+          if (!prev || prev.length === 0) return prev;
+          const replaced: ChatItem = {
+            ...prev[0],
+            name: name || prev[0].name,
+            age: isNaN(ageNum) ? prev[0].age : ageNum,
+            tags: tags.length ? tags : prev[0].tags,
+            // keep avatar & lastMessage from dummy
+          };
+          return [replaced, ...prev.slice(1)];
+        });
+      } catch (e) {
+        console.log("[recs] Fetch error:", e);
+      }
+    })();
+  }, [API_BASE_URL]);
 
   const loadMore = useCallback(() => {
     if (loading) return;

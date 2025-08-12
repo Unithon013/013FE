@@ -1,4 +1,10 @@
-import React, { useMemo, useRef, useState, useCallback } from "react";
+import React, {
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import {
   View,
   Text,
@@ -15,6 +21,8 @@ import {
 } from "react-native-safe-area-context";
 
 import { colors, typography } from "@/constants";
+
+import { API_BASE_URL } from "@env";
 
 type Profile = {
   id: string;
@@ -59,6 +67,87 @@ export default function MypageScreen() {
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<"video" | "summary">("video");
 
+  const [meName, setMeName] = useState("");
+  const [meAge, setMeAge] = useState("");
+  const [meGender, setMeGender] = useState("");
+  const [meHobbies, setMeHobbies] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>("");
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const url = `${API_BASE_URL}/users/me`;
+        console.log("[mypage users/me] Fetching:", url);
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            // TODO: replace this test header with real auth header when ready
+            "X-User-Id": "5",
+          },
+        });
+        console.log("[mypage users/me] Status:", res.status);
+        const data = await res.json();
+        console.log("[mypage users/me] JSON:", data);
+
+        // name
+        setMeName(data?.name ?? "");
+
+        // age: allow "83세" or number
+        let ageNum = "";
+        if (typeof data?.age === "number") {
+          ageNum = String(data.age);
+        } else if (typeof data?.age === "string") {
+          const m = data.age.match(/\d+/);
+          ageNum = m ? m[0] : "";
+        }
+        setMeAge(ageNum);
+
+        // gender: map to '남성' or '여성' if available
+        let genderStr = "";
+        const genderRaw = data?.gender;
+        if (typeof genderRaw === "string") {
+          const g = genderRaw.toLowerCase();
+          if (g === "m" || g === "male") {
+            genderStr = "남성";
+          } else if (g === "f" || g === "female") {
+            genderStr = "여성";
+          }
+        }
+        setMeGender(genderStr);
+
+        // hobbies: can be array or a JSON-stringified array
+        let hobbiesArr: string[] = [];
+        if (Array.isArray(data?.hobbies)) {
+          hobbiesArr = data.hobbies.filter(Boolean);
+        } else if (typeof data?.hobbies === "string") {
+          try {
+            const parsed = JSON.parse(data.hobbies);
+            if (Array.isArray(parsed)) hobbiesArr = parsed.filter(Boolean);
+          } catch {
+            hobbiesArr = data.hobbies
+              .split(/[\s,\n]+/)
+              .map((s: string) => s.replace(/[\[\]"]+/g, "").trim())
+              .filter(Boolean);
+          }
+        }
+        setMeHobbies(hobbiesArr);
+
+        // videoUrl: may be relative like "/media/..."
+        const rawVideo = data?.videoUrl ?? "";
+        const absoluteVideo = rawVideo
+          ? rawVideo.startsWith("http")
+            ? rawVideo
+            : `${API_BASE_URL}${rawVideo}`
+          : "";
+        setVideoUrl(absoluteVideo);
+      } catch (e) {
+        console.log("[mypage users/me] Fetch error:", e);
+      }
+    };
+    fetchMe();
+  }, []);
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: colors.primary }}
@@ -72,11 +161,14 @@ export default function MypageScreen() {
           </View>
           <View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={styles.nameText}>김숭실</Text>
+              <Text style={styles.nameText}>{meName || "회원"}</Text>
             </View>
-            <Text style={styles.infoText}>75세 / 남자 / 미혼</Text>
+            <Text style={styles.infoText}>
+              {meAge ? `${meAge}세` : ""}
+              {meGender ? ` / ${meGender}` : " / 혼성"}
+            </Text>
             <View style={styles.tagsRow}>
-              {["요리", "산책", "등산"].map((tag) => (
+              {meHobbies.map((tag) => (
                 <View key={tag} style={styles.tagChip}>
                   <Text style={styles.tagChipText}>{tag}</Text>
                 </View>
@@ -121,8 +213,16 @@ export default function MypageScreen() {
         {/* 콘텐츠 영역 */}
         {tab === "video" ? (
           <ScrollView>
-            {typeof Video === "number" ||
-            (Video && typeof Video === "object" && "uri" in (Video as any)) ? (
+            {videoUrl ? (
+              <ImageBackground
+                source={{ uri: videoUrl }}
+                style={styles.videoCard}
+                resizeMode="cover"
+              />
+            ) : typeof Video === "number" ||
+              (Video &&
+                typeof Video === "object" &&
+                "uri" in (Video as any)) ? (
               <ImageBackground
                 source={Video as any}
                 style={styles.videoCard}
@@ -156,7 +256,10 @@ export default function MypageScreen() {
               resizeMode="cover"
             >
               <Text style={styles.oneLineText}>
-                {"       "}노래, 등산 요리를 사랑하는
+                {"       "}
+                {meHobbies.length > 0
+                  ? `${meHobbies.join(", ")}를 사랑하는`
+                  : ""}
               </Text>
               <Text style={styles.oneLineText}>
                 {"       "}인생을 즐기는 사람입니다.
