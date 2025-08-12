@@ -2,6 +2,25 @@
 import React from "react";
 import { Image, ImageProps } from "react-native";
 
+export function ChatHeadB() {
+  return (
+    <Image
+      source={require("@/assets/chat/Beheader.png")}
+      style={{ width: "100%", height: 64 }}
+      resizeMode="cover"
+    />
+  );
+}
+export function ChatHead() {
+  return (
+    <Image
+      source={require("@/assets/chat/unBeheader.png")}
+      style={{ width: "100%", height: 64 }}
+      resizeMode="cover"
+    />
+  );
+}
+
 export function Logo() {
   return (
     <Image
@@ -47,6 +66,26 @@ export function SoongsilKim() {
     <Image
       source={require("@/assets/soongsilKim.png")}
       style={{ width: 114, height: 129 }}
+      resizeMode="contain"
+    />
+  );
+}
+
+export function StartButton() {
+  return (
+    <Image
+      source={require("@/assets/start.png")}
+      style={{ width: 203, height: 241 }}
+      resizeMode="contain"
+    />
+  );
+}
+
+export function HomeCharacter() {
+  return (
+    <Image
+      source={require("@/assets/home_character.png")}
+      style={{ width: 80, height: 80 }}
       resizeMode="contain"
     />
   );

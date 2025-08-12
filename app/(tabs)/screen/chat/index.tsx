@@ -10,6 +10,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { colors, typography } from "@/constants";
+import { useNavigation } from "@react-navigation/native";
 
 // --- Dummy avatar requires (must be static for Metro bundler) ---
 const AVATARS = [
@@ -27,7 +28,6 @@ interface ChatItem {
   age: number;
   tags: string[];
   lastMessage: string;
-  unread?: number;
   avatar: any; // ImageSourcePropType but keep simple for RN types
 }
 
@@ -46,15 +46,6 @@ const Chip = ({
   </View>
 );
 
-const UnreadBadge = ({ count = 0 }: { count?: number }) => {
-  if (!count) return null;
-  return (
-    <View style={styles.badge}>
-      <Text style={styles.badgeText}>{count}</Text>
-    </View>
-  );
-};
-
 // --- Helpers to fabricate more rows ---
 const BASE_ROWS: Omit<ChatItem, "id">[] = [
   {
@@ -62,7 +53,6 @@ const BASE_ROWS: Omit<ChatItem, "id">[] = [
     age: 75,
     tags: ["관악", "기독교", "절약"],
     lastMessage: "안녕하세요 장미꽃 같은 소녀여…",
-    unread: 3,
     avatar: AVATARS[0],
   },
   {
@@ -103,6 +93,7 @@ const makeChunk = (page: number): ChatItem[] => {
 };
 
 export default function ChatScreen() {
+  const navigation = useNavigation();
   const [page, setPage] = useState(0);
   const [data, setData] = useState<ChatItem[]>(() => makeChunk(0));
   const [loading, setLoading] = useState(false);
@@ -120,32 +111,40 @@ export default function ChatScreen() {
     }, 300);
   }, [loading, page]);
 
-  const renderItem: ListRenderItem<ChatItem> = useCallback(({ item }) => {
-    return (
-      <TouchableOpacity activeOpacity={0.8} style={styles.row}>
-        <Image source={item.avatar} style={styles.avatar} />
-        <View style={styles.rowBody}>
-          <View style={styles.nameLine}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.age}>{item.age}세</Text>
-            <UnreadBadge count={item.unread} />
+  const renderItem: ListRenderItem<ChatItem> = useCallback(
+    ({ item, index }) => {
+      return (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.row}
+          onPress={() => {
+            if (index === 0) navigation.navigate("Chat0" as never);
+          }}
+        >
+          <Image source={item.avatar} style={styles.avatar} />
+          <View style={styles.rowBody}>
+            <View style={styles.nameLine}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.age}>{item.age}세</Text>
+            </View>
+            <View style={styles.tagLine}>
+              {item.tags.map((t, idx) => (
+                <Chip
+                  key={`${item.id}-${t}-${idx}`}
+                  label={t}
+                  isPrimary={idx === 0}
+                />
+              ))}
+            </View>
+            <Text style={styles.preview} numberOfLines={1}>
+              {item.lastMessage}
+            </Text>
           </View>
-          <View style={styles.tagLine}>
-            {item.tags.map((t, idx) => (
-              <Chip
-                key={`${item.id}-${t}-${idx}`}
-                label={t}
-                isPrimary={idx === 0}
-              />
-            ))}
-          </View>
-          <Text style={styles.preview} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  }, []);
+        </TouchableOpacity>
+      );
+    },
+    [navigation]
+  );
 
   const keyExtractor = useCallback((it: ChatItem) => it.id, []);
 
