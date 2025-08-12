@@ -1,5 +1,5 @@
 // app/(tabs)/screen/chat/chat_0.tsx
-import React, { useLayoutEffect, useMemo, useState } from "react";
+import React, { useLayoutEffect, useMemo, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { colors, typography } from "@/constants";
 import { ChatHeadB, ChatHead } from "@/assets";
 
@@ -104,6 +104,20 @@ export default function ChatRoom0Screen() {
       headerTransparent: false,
     });
   }, [navigation, hasSentFirstMessage, insets.top]);
+
+  // Hide bottom tab bar while this chat screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      const parent = navigation.getParent?.();
+      // v6+: Hide the tab bar when this screen is in focus
+      parent?.setOptions({ tabBarStyle: { display: "none" } });
+
+      // Cleanup: restore the default tab bar style when leaving
+      return () => {
+        parent?.setOptions({ tabBarStyle: undefined });
+      };
+    }, [navigation])
+  );
 
   // ----- Actions -----
   const send = () => {
