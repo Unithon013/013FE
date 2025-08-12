@@ -71,6 +71,16 @@ export function SoongsilKim() {
   );
 }
 
+export function Video() {
+  return (
+    <Image
+      source={require("@/assets/video.png")}
+      style={{ width: 320, height: 391 }}
+      resizeMode="contain"
+    />
+  );
+}
+
 export function StartButton() {
   return (
     <Image
@@ -94,7 +104,7 @@ export function HomeCharacter() {
 export function StoreHeader(props: Omit<ImageProps, "source">) {
   return (
     <Image
-      source={require("@/assets/store/header.png")}
+      source={require("@/assets/store/storeH.png")}
       resizeMode="contain"
       {...props}
       style={[{ width: "100%" }, props?.style]}

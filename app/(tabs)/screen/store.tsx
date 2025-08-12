@@ -49,26 +49,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     justifyContent: "flex-start",
-    alignItems: "stretch",
   },
   headerWrap: {
+    paddingHorizontal: 10,
     marginTop: 0,
-    marginBottom: 16,
-    alignSelf: "stretch",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-    padding: 16,
+    marginBottom: 6,
   },
   listContent: {
     paddingBottom: 16,
   },
   itemContainer: {
+    paddingHorizontal: 21,
     flexDirection: "row",
     alignItems: "center",
-
-    paddingHorizontal: 8,
     marginBottom: 12,
     backgroundColor: colors.white,
   },
