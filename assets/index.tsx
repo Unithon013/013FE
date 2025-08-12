@@ -65,7 +65,7 @@ export function Call() {
   return (
     <Image
       source={require("@/assets/call.png")}
-      style={{ width: 91, height: 139 }}
+      style={{ width: 91, height: 91 }}
       resizeMode="contain"
     />
   );

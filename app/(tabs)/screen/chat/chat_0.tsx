@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { router } from "expo-router";
 import { colors, typography } from "@/constants";
 import { ChatHeadB, ChatHead, Back } from "@/assets";
 
@@ -83,7 +84,12 @@ export default function ChatRoom0Screen() {
 
         {/* 뒤로가기 버튼 (세로 가운데) */}
         <Pressable
-          onPress={() => navigation.goBack()}
+          onPress={() =>
+            navigation.navigate("Tabs", {
+              screen: "Chat",
+              params: { screen: "ChatList" },
+            })
+          }
           style={{
             position: "absolute",
             left: 16,
@@ -106,14 +112,11 @@ export default function ChatRoom0Screen() {
     });
   }, [navigation, hasSentFirstMessage, insets.top]);
 
-  // Hide bottom tab bar while this chat screen is focused
   useFocusEffect(
     useCallback(() => {
       const parent = navigation.getParent?.();
-      // v6+: Hide the tab bar when this screen is in focus
       parent?.setOptions({ tabBarStyle: { display: "none" } });
 
-      // Cleanup: restore the default tab bar style when leaving
       return () => {
         parent?.setOptions({ tabBarStyle: undefined });
       };

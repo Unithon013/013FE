@@ -17,12 +17,13 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 
-import LockIcon from '@/assets/lock.svg';
-import FirewoodIcon from '@/assets/modal/firewood.svg';
-import MinusBtnIcon from '@/assets/modal/minusBtn.svg';
-import PlusBtnIcon from '@/assets/modal/plusBtn.svg';
+import LockIcon from "@/assets/lock.svg";
+import FirewoodIcon from "@/assets/modal/firewood.svg";
+import MinusBtnIcon from "@/assets/modal/minusBtn.svg";
+import PlusBtnIcon from "@/assets/modal/plusBtn.svg";
 
 import { StatusBar } from "expo-status-bar";
 import { HomeCharacter } from "@/assets";
@@ -78,10 +79,10 @@ const DATA: Profile[] = [
 
 export default function HomeScreen() {
   const [index, setIndex] = useState(0);
+  const navigation = useNavigation<any>();
   const [profiles, setProfiles] = useState<Profile[]>(DATA); //프로필 리스트를 상태로
   const listRef = useRef<FlatList<Item>>(null);
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
 
   const onViewRef = useRef<
     NonNullable<FlatListProps<Item>["onViewableItemsChanged"]>
@@ -133,11 +134,13 @@ export default function HomeScreen() {
       age: 25 + (i % 7),
       district: ["용산구", "마포구", "강남구", "관악구"][i % 4],
       hobbies: "탁구",
-      photo: `https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&auto=format&fit=crop&sig=${now + i}`,
+      photo: `https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&auto=format&fit=crop&sig=${
+        now + i
+      }`,
     }));
     const prevLen = profiles.length;
     setProfiles((prev) => [...prev, ...more]); // CTA 앞에 붙음
-    pendingScrollIndexRef.current = prevLen;   // 첫 새 카드로 이동
+    pendingScrollIndexRef.current = prevLen; // 첫 새 카드로 이동
   }
 
   //추천받기 눌렀을 때 모달
@@ -152,7 +155,6 @@ export default function HomeScreen() {
     if (woodBalance < totalCost) {
       // 잔여 부족 처리(토스트 등)
       return;
-
     }
     setWoodBalance((b) => b - totalCost);
     closeSheet();
@@ -164,13 +166,24 @@ export default function HomeScreen() {
       return (
         <View style={styles.page}>
           <View style={styles.cardShadow}>
-            <View style={[styles.card, { height: cardH, backgroundColor: "#636262ff" }]}>
-              <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.2)" }]} />
+            <View
+              style={[
+                styles.card,
+                { height: cardH, backgroundColor: "#636262ff" },
+              ]}
+            >
+              <View
+                style={[
+                  StyleSheet.absoluteFillObject,
+                  { backgroundColor: "rgba(0,0,0,0.2)" },
+                ]}
+              />
               <View style={styles.lockCenter}>
-                <Text style={styles.lockGuide}>장작을 태워 더 많은 추천을 받아보세요.</Text>
-                <LockIcon width={69} height={69}/>
+                <Text style={styles.lockGuide}>
+                  장작을 태워 더 많은 추천을 받아보세요.
+                </Text>
+                <LockIcon width={69} height={69} />
                 <Pressable style={styles.recommendBtn} onPress={onPressCTA}>
-
                   <Text style={styles.recommendText}>추천받기</Text>
                 </Pressable>
               </View>
@@ -200,7 +213,7 @@ export default function HomeScreen() {
               <Pressable
                 style={styles.videoBtn}
                 onPress={() =>
-                  navigation.navigate("ReelsPage", {
+                  navigation.navigate("Reels", {
                     imageUrl: p.photo,
                     district: p.district,
                     age: p.age,
@@ -222,13 +235,13 @@ export default function HomeScreen() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetStep, setSheetStep] = useState<"picker" | "confirm">("picker");
   const [selectCount, setSelectCount] = useState(5);
-  const backdropA = useRef(new Animated.Value(0)).current;  
+  const backdropA = useRef(new Animated.Value(0)).current;
   const sheetA = useRef(new Animated.Value(0)).current;
   const sheetHRef = useRef(0);
-  const [sheetReady, setSheetReady] = useState(false);     
+  const [sheetReady, setSheetReady] = useState(false);
 
   // 비용/잔여
-  const COST_PER_PERSON = 2;              // 1명 추가당 장작 소모
+  const COST_PER_PERSON = 2; // 1명 추가당 장작 소모
   const [woodBalance, setWoodBalance] = useState(40); // 잔여 장작
   const totalCost = selectCount * COST_PER_PERSON;
   const MIN_CNT = 1; //추천 인원 수 최소값
@@ -237,7 +250,7 @@ export default function HomeScreen() {
   const openSheet = () => {
     setSelectCount(1);
     setSheetStep("picker");
-    setSheetReady(false);  //플리커 현상
+    setSheetReady(false); //플리커 현상
     setSheetOpen(true);
   };
 
@@ -247,16 +260,33 @@ export default function HomeScreen() {
     backdropA.setValue(0);
     sheetA.setValue(h);
     Animated.parallel([
-      Animated.timing(backdropA, { toValue: 1, duration: 180, useNativeDriver: true }),
-      Animated.spring(sheetA, { toValue: 0, useNativeDriver: true, friction: 10, tension: 80 }),
+      Animated.timing(backdropA, {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.spring(sheetA, {
+        toValue: 0,
+        useNativeDriver: true,
+        friction: 10,
+        tension: 80,
+      }),
     ]).start();
   }, [sheetOpen, sheetReady]);
 
   const closeSheet = () => {
-  const h = sheetHRef.current || 500;
+    const h = sheetHRef.current || 500;
     Animated.parallel([
-      Animated.timing(backdropA, { toValue: 0, duration: 160, useNativeDriver: true }),
-      Animated.timing(sheetA, { toValue: h, duration: 200, useNativeDriver: true }),
+      Animated.timing(backdropA, {
+        toValue: 0,
+        duration: 160,
+        useNativeDriver: true,
+      }),
+      Animated.timing(sheetA, {
+        toValue: h,
+        duration: 200,
+        useNativeDriver: true,
+      }),
     ]).start(() => setSheetOpen(false));
   };
 
@@ -346,11 +376,14 @@ export default function HomeScreen() {
         <Animated.View
           style={[
             styles.sheet,
-            { transform: [{ translateY: sheetA }], opacity: sheetReady ? 1 : 0 },
+            {
+              transform: [{ translateY: sheetA }],
+              opacity: sheetReady ? 1 : 0,
+            },
           ]}
           onLayout={(e) => {
             sheetHRef.current = e.nativeEvent.layout.height;
-            setSheetReady(true);         // 여기서부터 애니메이션 시작됨
+            setSheetReady(true); // 여기서부터 애니메이션 시작됨
           }}
         >
           <View style={styles.dragBar} />
@@ -359,7 +392,10 @@ export default function HomeScreen() {
             <View>
               <View style={styles.infoPill}>
                 <Text style={styles.infoPillText}>
-                  소모될 장작 <Text style={{ color: colors.primary, fontWeight: "900" }}>{totalCost}개</Text>
+                  소모될 장작{" "}
+                  <Text style={{ color: colors.primary, fontWeight: "900" }}>
+                    {totalCost}개
+                  </Text>
                 </Text>
               </View>
 
@@ -368,9 +404,11 @@ export default function HomeScreen() {
               <View style={styles.counterRow}>
                 <Pressable
                   style={styles.circleBtn}
-                  onPress={() => setSelectCount((c) => Math.max(MIN_CNT, c - 1))}
+                  onPress={() =>
+                    setSelectCount((c) => Math.max(MIN_CNT, c - 1))
+                  }
                 >
-                  <MinusBtnIcon width={44} height={44}/>
+                  <MinusBtnIcon width={44} height={44} />
                 </Pressable>
 
                 <View style={styles.countWrap}>
@@ -380,9 +418,11 @@ export default function HomeScreen() {
 
                 <Pressable
                   style={styles.circleBtn}
-                  onPress={() => setSelectCount((c) => Math.min(MAX_CNT, c + 1))}
+                  onPress={() =>
+                    setSelectCount((c) => Math.min(MAX_CNT, c + 1))
+                  }
                 >
-                  <PlusBtnIcon width={44} height={44}/>
+                  <PlusBtnIcon width={44} height={44} />
                 </Pressable>
               </View>
 
@@ -402,14 +442,19 @@ export default function HomeScreen() {
             <View>
               <View style={styles.infoPill}>
                 <Text style={styles.infoPillText}>
-                  장작 잔여 횟수 <Text style={{ color: colors.primary, fontWeight: "900" }}>{woodBalance}개</Text>
+                  장작 잔여 횟수{" "}
+                  <Text style={{ color: colors.primary, fontWeight: "900" }}>
+                    {woodBalance}개
+                  </Text>
                 </Text>
               </View>
 
               <View style={{ alignItems: "center", marginTop: 20 }}>
-                <FirewoodIcon width={162} height={144}/>
+                <FirewoodIcon width={162} height={144} />
                 <Text style={styles.confirmText}>
-                  <Text style={{ color: colors.primary, fontWeight: "900" }}>{totalCost}개</Text>
+                  <Text style={{ color: colors.primary, fontWeight: "900" }}>
+                    {totalCost}개
+                  </Text>
                   의 장작을 사용하시겠습니까?
                 </Text>
               </View>
@@ -419,7 +464,10 @@ export default function HomeScreen() {
                   <Text style={styles.grayBtnTxt}>아니요</Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.orangeBtn, woodBalance < totalCost && { opacity: 0.5 }]}
+                  style={[
+                    styles.orangeBtn,
+                    woodBalance < totalCost && { opacity: 0.5 },
+                  ]}
                   onPress={confirmPurchase}
                   disabled={woodBalance < totalCost}
                 >
@@ -551,11 +599,14 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.4 },
   disabledText: { color: "#aaa" },
 
-  lockCenter: { ...StyleSheet.absoluteFillObject, 
-    alignItems: "center", 
-    justifyContent: "center", 
-    paddingBottom: 20 },
-  lockGuide: { color: "#fff", 
+  lockCenter: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 20,
+  },
+  lockGuide: {
+    color: "#fff",
     ...typography.bodyB,
     textAlign: "center",
     marginBottom: 18,
@@ -575,53 +626,91 @@ const styles = StyleSheet.create({
     ...typography.h3,
   },
 
-
-  backdrop: { ...StyleSheet.absoluteFillObject, 
-    backgroundColor: "rgba(0,0,0,0.6)" },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.6)",
+  },
   sheet: {
     position: "absolute",
-    left: 0, right: 0, bottom: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: "#fff",
-    borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    paddingHorizontal: 24, paddingTop: 12, paddingBottom: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 24,
   },
   dragBar: {
     alignSelf: "center",
-    width: 200, height: 6, borderRadius: 3, backgroundColor: "#CFCFCF", marginBottom: 16,
+    width: 200,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#CFCFCF",
+    marginBottom: 16,
   },
   infoPill: {
     alignSelf: "stretch",
-    borderRadius: 20, borderWidth: 1, borderColor: "#E6E6E6",
-    paddingVertical: 14, paddingHorizontal: 18, alignItems: "center",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E6E6E6",
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    alignItems: "center",
   },
   infoPillText: { ...typography.bodyB, color: "#676767" },
-  qTitle: { marginTop: 28, marginBottom: 18, textAlign: "center", fontSize: 18, fontWeight: "800", color: "#333" },
+  qTitle: {
+    marginTop: 28,
+    marginBottom: 18,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#333",
+  },
 
-  counterRow: { flexDirection: "row", 
-    alignItems: "center", 
-    marginTop: 16, 
-    justifyContent: "center", gap: 28, marginBottom: 16 },
+  counterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    justifyContent: "center",
+    gap: 28,
+    marginBottom: 16,
+  },
   circleBtn: {
-    alignItems: "center", justifyContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
   countWrap: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',  
+    flexDirection: "row",
+    alignItems: "flex-end",
     gap: 6,
     minWidth: 120,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
-  countNum: { color: colors.primary, 
-    ...typography.h0 ,fontSize: 50,
-  },
-  countUnit: { color: "#444",
-     ...typography.h0, fontSize: 30 ,lineHeight: 32,},
+  countNum: { color: colors.primary, ...typography.h0, fontSize: 50 },
+  countUnit: { color: "#444", ...typography.h0, fontSize: 30, lineHeight: 32 },
 
   confirmText: { marginTop: 4, ...typography.h3, color: "#333" },
 
   sheetBtns: { flexDirection: "row", gap: 14, marginTop: 24 },
-  grayBtn: { flex: 1, height: 56, borderRadius: 18, borderWidth: 2, borderColor: "#9EA0A3", alignItems: "center", justifyContent: "center" },
+  grayBtn: {
+    flex: 1,
+    height: 56,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: "#9EA0A3",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   grayBtnTxt: { fontSize: 18, fontWeight: "800", color: "#666" },
-  orangeBtn: { flex: 1, height: 56, borderRadius: 18, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" },
+  orangeBtn: {
+    flex: 1,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   orangeBtnTxt: { fontSize: 18, fontWeight: "900", color: "#fff" },
 });
