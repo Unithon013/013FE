@@ -1,5 +1,5 @@
 // app/(tabs)/home.tsx  혹은 HomeScreen.tsx
-import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,13 +17,13 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
 
-import HomeCharacter from "../../../assets/home_character.svg";
 import LockIcon from '@/assets/lock.svg';
 import FirewoodIcon from '@/assets/modal/firewood.svg';
 import MinusBtnIcon from '@/assets/modal/minusBtn.svg';
 import PlusBtnIcon from '@/assets/modal/plusBtn.svg';
-import { useNavigation } from "@react-navigation/native";
+
 import { StatusBar } from "expo-status-bar";
 import { HomeCharacter } from "@/assets";
 
@@ -40,6 +40,7 @@ type Profile = {
   name: string;
   age: number;
   district: string;
+  hobbies: string;
   photo: string; // 이미지 URL 또는 require()
 };
 
@@ -51,6 +52,7 @@ const DATA: Profile[] = [
     name: "박막례",
     age: 60,
     district: "동작구",
+    hobbies: "탁구",
     photo:
       "https://images.unsplash.com/photo-1556761175-4b46a572b786?q=80&w=1200&auto=format&fit=crop",
   },
@@ -59,6 +61,7 @@ const DATA: Profile[] = [
     name: "김영희",
     age: 72,
     district: "성동구",
+    hobbies: "탁구",
     photo:
       "https://images.unsplash.com/photo-1598550476439-6847785fcea1?q=80&w=1200&auto=format&fit=crop",
   },
@@ -67,6 +70,7 @@ const DATA: Profile[] = [
     name: "이순자",
     age: 70,
     district: "관악구",
+    hobbies: "탁구",
     photo:
       "https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=1200&auto=format&fit=crop",
   },
@@ -128,6 +132,7 @@ export default function HomeScreen() {
       name: ["박초롱", "김태리", "최영수", "정다빈", "한지우"][i % 5],
       age: 25 + (i % 7),
       district: ["용산구", "마포구", "강남구", "관악구"][i % 4],
+      hobbies: "탁구",
       photo: `https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&auto=format&fit=crop&sig=${now + i}`,
     }));
     const prevLen = profiles.length;
@@ -569,7 +574,8 @@ const styles = StyleSheet.create({
     color: colors.white,
     ...typography.h3,
   },
-  /* Bottom sheet */
+
+
   backdrop: { ...StyleSheet.absoluteFillObject, 
     backgroundColor: "rgba(0,0,0,0.6)" },
   sheet: {
@@ -600,7 +606,7 @@ const styles = StyleSheet.create({
   },
   countWrap: {
     flexDirection: 'row',
-    alignItems: 'flex-end',   // 하단 기준으로 정렬 (baseline 대신 이게 안정적)
+    alignItems: 'flex-end',  
     gap: 6,
     minWidth: 120,
     justifyContent: 'center',

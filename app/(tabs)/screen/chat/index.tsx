@@ -7,8 +7,10 @@ import {
   FlatList,
   TouchableOpacity,
   ListRenderItem,
-  SafeAreaView,
 } from "react-native";
+import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
 import { colors, typography } from "@/constants";
 import { useNavigation } from "@react-navigation/native";
 
