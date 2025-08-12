@@ -47,11 +47,11 @@ export default function IntroRecordScreen() {
     if (phase !== "recording" || !ready || startedRef.current) return;
     startedRef.current = true;
 
-    setLeftSec(15);
+    setLeftSec(5);
     const startedAt = Date.now();
     timerRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-      const left = Math.max(0, 15 - elapsed);
+      const left = Math.max(0, 5 - elapsed);
       setLeftSec(left);
       
       // 30초가 끝나면 녹화 종료
