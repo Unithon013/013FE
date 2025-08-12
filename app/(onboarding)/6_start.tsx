@@ -2,36 +2,11 @@ import { View, Text, Pressable, Animated, Easing } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { colors, typography } from "@/constants";
-import { Ai2 } from "@/assets";
+import { StartButton } from "@/assets";
 import { useEffect, useRef } from "react";
 
 export default function Splash() {
   const router = useRouter();
-  const bobY = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(bobY, {
-          toValue: -5,
-          duration: 500,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(bobY, {
-          toValue: 0,
-          duration: 500,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    loop.start();
-    return () => {
-      loop.stop();
-      bobY.stopAnimation();
-    };
-  }, [bobY]);
 
   return (
     <Pressable
@@ -48,10 +23,10 @@ export default function Splash() {
       >
         <View
           style={{
-            zIndex: 1,
             alignItems: "center",
+            justifyContent: "center",
             position: "absolute",
-            top: "27%",
+            top: "35%",
           }}
         >
           <Text
@@ -66,7 +41,6 @@ export default function Splash() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
             }}
           >
             <Text
@@ -93,18 +67,8 @@ export default function Splash() {
               만나보세요!
             </Text>
           </View>
+          <StartButton />
         </View>
-        <Animated.View
-          style={{
-            position: "absolute",
-            bottom: 30,
-            alignSelf: "center",
-            zIndex: 1,
-            transform: [{ translateY: bobY }],
-          }}
-        >
-          <Ai2 />
-        </Animated.View>
       </View>
     </Pressable>
   );

@@ -7,7 +7,7 @@ import {
   Dimensions,
   StyleSheet,
 } from "react-native";
-import { SoongsilKim } from "@/assets";
+import { SoongsilKim, Video } from "@/assets";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -59,7 +59,10 @@ export default function MypageScreen() {
   const [tab, setTab] = useState<"video" | "summary">("video");
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: colors.primary }}
+      edges={["top"]}
+    >
       {/* 상단 오렌지 영역 (헤더 대체) */}
       <View style={styles.topHero}>
         <View style={styles.textWrapper}>
@@ -112,18 +115,23 @@ export default function MypageScreen() {
         {/* 콘텐츠 영역 */}
         {tab === "video" ? (
           <>
-            <ImageBackground
-              source={{
-                uri: "https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=1200&auto=format&fit=crop",
-              }}
-              style={styles.videoCard}
-              imageStyle={{ borderRadius: 16 }}
-              resizeMode="cover"
-            >
-              <View style={styles.playButton}>
-                <Text style={styles.playIcon}>▶</Text>
+            {typeof Video === "number" ||
+            (Video && typeof Video === "object" && "uri" in (Video as any)) ? (
+              <ImageBackground
+                source={Video as any}
+                style={styles.videoCard}
+                imageStyle={{ borderRadius: 16 }}
+                resizeMode="cover"
+              >
+                <View style={styles.playButton}>
+                  <Text style={styles.playIcon}>▶</Text>
+                </View>
+              </ImageBackground>
+            ) : (
+              <View style={styles.videoCard}>
+                <Video width={310} height={379} />
               </View>
-            </ImageBackground>
+            )}
             <Pressable
               style={styles.primaryCta}
               onPress={() => console.log("다시 찍기")}
@@ -282,6 +290,15 @@ const styles = StyleSheet.create({
     marginLeft: 2,
     marginTop: -2,
     fontWeight: "700",
+  },
+  playButtonOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
   },
   primaryCta: {
     marginTop: 16,
