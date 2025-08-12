@@ -16,7 +16,14 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import HomeCharacter from "../../../assets/home_character.svg";
+import LockIcon from '@/assets/lock.svg';
 import { colors, typography } from "../../../constants";
+
+const { width } = Dimensions.get("window");
+const PAGE_WIDTH = width; //FlatList 페이징 단위
+const CARD_RADIUS = 27;
+const BASE_CARD_H = 520; //카드 기본 크기
+const MIDDLE_VPAD = 30 + 8; 
 
 type Profile = {
   id: string;
@@ -25,10 +32,7 @@ type Profile = {
   district: string;
   photo: string; // 이미지 URL 또는 require()
 };
-
-const { width } = Dimensions.get("window");
-const PAGE_WIDTH = width; // FlatList 페이징 단위
-const CARD_RADIUS = 27;
+type Item = { kind: "profile"; profile: Profile } | { kind: "cta" }; //마지막 숨겨진 카드
 
 const DATA: Profile[] = [
   {
@@ -59,21 +63,33 @@ const DATA: Profile[] = [
 
 export default function HomeScreen() {
   const [index, setIndex] = useState(0);
-  const listRef = useRef<FlatList<Profile>>(null);
+  const [profiles, setProfiles] = useState<Profile[]>(DATA); //프로필 리스트를 상태로
+  const listRef = useRef<FlatList<Item>>(null);
   const insets = useSafeAreaInsets();
 
-  const onViewRef = useRef<
-    NonNullable<FlatListProps<Profile>["onViewableItemsChanged"]>
-  >(({ viewableItems }) => {
-    const first = viewableItems[0];
-    if (first && first.index !== null && first.index !== undefined) {
-      setIndex(first.index);
-    }
-  }).current;
+  const onViewRef =
+    useRef<NonNullable<FlatListProps<Item>["onViewableItemsChanged"]>>(
+      ({ viewableItems }) => {
+        const first = viewableItems[0];
+        if (first?.index != null) setIndex(first.index);
+      }
+  ).current;
+
+  const items: Item[] = useMemo(
+    () => [...profiles.map((p) => ({ kind: "profile", profile: p } as Item)), { kind: "cta" }],
+    [profiles]
+  );
 
   const viewabilityConfig = useMemo(
     () => ({ viewAreaCoveragePercentThreshold: 60 }),
     []
+  );
+
+  //카드 크기 조절
+  const [middleH, setMiddleH] = useState(0);
+  const cardH = Math.max(
+    280,                              //카드 크기 최소값
+    Math.min(BASE_CARD_H, middleH - MIDDLE_VPAD)
   );
 
   const goPrev = () => {
@@ -82,43 +98,70 @@ export default function HomeScreen() {
   };
 
   const goNext = () => {
-    if (index >= DATA.length - 1) return;
+    if (index >= DATA.length) return;
     listRef.current?.scrollToIndex({ index: index + 1, animated: true });
   };
 
-  const renderItem = ({ item }: { item: Profile }) => (
-    <View style={styles.page}>
-      <View style={styles.cardShadow}>
-        <ImageBackground
-          source={{ uri: item.photo }}
-          style={styles.card}
-          imageStyle={{ borderRadius: CARD_RADIUS }}
-          resizeMode="cover"
-        >
-          {/* 하단 반투명 오버레이 */}
-          <View style={styles.overlay}>
-            <View>
-              <Text style={styles.nameLine1}>
-                {item.district}, {item.age}세
-              </Text>
-            </View>
-            <View style={styles.bottomWrapper}>
-              <Text style={styles.nameLine2}>{item.name}</Text>
-              <Pressable
-                style={styles.videoBtn}
-                onPress={() => console.log("소개 영상 보러가기")}
-              >
-                <Text style={styles.videoBtnText}>소개 영상 보러가기</Text>
-              </Pressable>
+  // 추천받기 눌렀을 때 더 불러오는 예 + 나중에 실제 API로 교체해야함!!
+  const fetchMore = async () => {
+    const more: Profile[] = [
+      { id: String(Date.now()), name: "박초롱", age: 26, district: "용산구",
+        photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&auto=format&fit=crop" },
+    ];
+    setProfiles((prev) => [...prev, ...more]);
+    requestAnimationFrame(() =>
+      listRef.current?.scrollToIndex({ index: profiles.length, animated: true })
+    );
+  };
+
+  const renderItem = ({ item }: { item: Item }) => {
+    if (item.kind === "cta") {
+      return (
+        <View style={styles.page}>
+          <View style={styles.cardShadow}>
+            <View style={[styles.card, { height: cardH, backgroundColor: "#222" }]}>
+              <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.35)" }]} />
+              <View style={styles.lockCenter}>
+                <Text style={styles.lockGuide}>장작을 태워 더 많은 추천을 받아보세요.</Text>
+                <LockIcon width={69} height={69}/>
+                <Pressable style={styles.recommendBtn} onPress={fetchMore}>
+                  <Text style={styles.recommendText}>추천받기</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-        </ImageBackground>
+        </View>
+      );
+    }
+
+    const p = item.profile;
+    return (
+      <View style={styles.page}>
+        <View style={styles.cardShadow}>
+          <ImageBackground
+            source={{ uri: p.photo }}
+            style={[styles.card, { height: cardH }]}   
+            imageStyle={{ borderRadius: CARD_RADIUS }}
+            resizeMode="cover"                  
+          >
+            <View style={styles.overlay}>
+              <View>
+                <Text style={styles.nameLine1}>{p.district}, {p.age}세</Text>
+                <Text style={styles.nameLine2}>{p.name}</Text>
+              </View>
+              <Pressable style={styles.videoBtn} onPress={() => console.log("소개 영상 보러가기")}>
+                <Text style={styles.videoBtnText}>클릭해서</Text>
+                <Text style={styles.videoBtnText}>소개 영상 보기</Text>
+              </Pressable>
+            </View>
+          </ImageBackground>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}edges={['top']}>
       {/* 상단 오렌지 영역 (헤더 대체) */}
       <View style={styles.topHero}>
         <View style={styles.textWrapper}>
@@ -136,22 +179,18 @@ export default function HomeScreen() {
 
       <View style={styles.stage}>
         {/* 카드 스와이프 영역 */}
-        <View style={styles.middle}>
+        <View style={styles.middle} onLayout={(e) => setMiddleH(e.nativeEvent.layout.height)}>
           <FlatList
             ref={listRef}
-            data={DATA}
-            keyExtractor={(it) => it.id}
+            data={items}
+            keyExtractor={(it, i) => (it.kind === "profile" ? it.profile.id : `cta-${i}`)}
             renderItem={renderItem}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onViewableItemsChanged={onViewRef}
             viewabilityConfig={viewabilityConfig}
-            getItemLayout={(_, i) => ({
-              length: PAGE_WIDTH,
-              offset: PAGE_WIDTH * i,
-              index: i,
-            })}
+            getItemLayout={(_, i) => ({ length: PAGE_WIDTH, offset: PAGE_WIDTH * i, index: i })}
           />
         </View>
 
@@ -169,10 +208,10 @@ export default function HomeScreen() {
 
           <Pressable
             onPress={goNext}
-            disabled={index === DATA.length - 1}
+            disabled={index === DATA.length}
             style={[
               styles.nextBtn,
-              index === DATA.length - 1 && styles.disabled,
+              index === DATA.length && styles.disabled,
             ]}
           >
             <Text style={styles.nextText}>다음</Text>
@@ -185,6 +224,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   topHero: {
+    flex: 1,
     backgroundColor: colors.primary,
     paddingHorizontal: 20,
     paddingTop: 18,
@@ -208,7 +248,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
   },
   stage: {
-    flex: 1,
+    flex: 9,
     backgroundColor: "#fff",
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
@@ -239,6 +279,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomLeftRadius: CARD_RADIUS,
     borderBottomRightRadius: CARD_RADIUS,
+    flexDirection: "row",
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   bottomWrapper: {
     flexDirection: "row",
@@ -254,12 +297,13 @@ const styles = StyleSheet.create({
   },
   videoBtn: {
     alignSelf: "flex-start",
+    alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: 14,
+    paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 15,
   },
-  videoBtnText: { color: colors.white, ...typography.sub },
+  videoBtnText: { color: colors.white, ...typography.bodyB },
   footer: {
     flexDirection: "row",
     gap: 16,
@@ -290,7 +334,29 @@ const styles = StyleSheet.create({
     color: colors.white,
     ...typography.h2,
   },
-
   disabled: { opacity: 0.4 },
   disabledText: { color: "#aaa" },
+
+  lockCenter: { ...StyleSheet.absoluteFillObject, 
+    alignItems: "center", 
+    justifyContent: "center", 
+    paddingBottom: 20 },
+  lockGuide: { color: "#fff", 
+    ...typography.bodyB,
+    textAlign: "center", 
+    marginBottom: 18,
+    textShadowColor: "rgba(0,0,0,0.3)", 
+    textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 6 
+  },
+  recommendBtn: { 
+    marginTop:14,
+    backgroundColor: colors.primary, 
+    borderRadius: 15, 
+    paddingHorizontal: 20, 
+    paddingVertical: 10 
+  },
+  recommendText: { 
+    color: colors.white, 
+    ...typography.h3,
+  },
 });
