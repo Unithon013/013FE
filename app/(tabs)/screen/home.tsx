@@ -75,9 +75,12 @@ export default function HomeScreen() {
       }
   ).current;
 
+  //모든 카드리스트의 마지막은 cta카드 있음
   const items: Item[] = useMemo(
-    () => [...profiles.map((p) => ({ kind: "profile", profile: p } as Item)), { kind: "cta" }],
-    [profiles]
+  () => [
+    ...profiles.map((p) => ({ kind: "profile", profile: p } as Item)),
+    { kind: "cta" } as Item, ],
+  [profiles]
   );
 
   const viewabilityConfig = useMemo(
@@ -97,21 +100,38 @@ export default function HomeScreen() {
     listRef.current?.scrollToIndex({ index: index - 1, animated: true });
   };
 
-  const goNext = () => {
-    if (index >= DATA.length) return;
-    listRef.current?.scrollToIndex({ index: index + 1, animated: true });
-  };
+  const goNext = () =>
+    index < items.length - 1 && 
+    listRef.current?.scrollToIndex({ index: index + 1, animated: true }
+  );
+
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const pendingScrollIndexRef = useRef<number | null>(null);
 
   // 추천받기 눌렀을 때 더 불러오는 예 + 나중에 실제 API로 교체해야함!!
   const fetchMore = async () => {
+    if (isLoadingMore) return;
+    setIsLoadingMore(true);
+
+    const prevLen = profiles.length; //새 카드가 시작될 위치(= 이전 길이)
+
+    //실제 API로 교체해야하는 부분
     const more: Profile[] = [
-      { id: String(Date.now()), name: "박초롱", age: 26, district: "용산구",
-        photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&auto=format&fit=crop" },
+      {
+        id: String(Date.now()),
+        name: "박초롱",
+        age: 26,
+        district: "용산구",
+        photo:
+          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&auto=format&fit=crop",
+      },
     ];
-    setProfiles((prev) => [...prev, ...more]);
-    requestAnimationFrame(() =>
-      listRef.current?.scrollToIndex({ index: profiles.length, animated: true })
-    );
+
+    if (more.length > 0) {
+      setProfiles((prev) => [...prev, ...more]); // 새 카드들이 붙음
+      pendingScrollIndexRef.current = prevLen;   // 새 첫 카드로 이동
+    }
+    setIsLoadingMore(false);
   };
 
   const renderItem = ({ item }: { item: Item }) => {
@@ -206,14 +226,9 @@ export default function HomeScreen() {
             </Text>
           </Pressable>
 
-          <Pressable
-            onPress={goNext}
-            disabled={index === DATA.length}
-            style={[
-              styles.nextBtn,
-              index === DATA.length && styles.disabled,
-            ]}
-          >
+          <Pressable 
+            onPress={goNext} disabled={index === items.length-1}
+            style={[styles.nextBtn, index === items.length-1 && styles.disabled]}>
             <Text style={styles.nextText}>다음</Text>
           </Pressable>
         </View>
