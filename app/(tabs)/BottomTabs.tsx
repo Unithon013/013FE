@@ -26,16 +26,16 @@ import Chat0Screen from "./screen/chat/chat_0";
 import StoreScreen from "./screen/store";
 import GroupScreen from "./screen/group";
 import MypageScreen from "./screen/mypage";
-import ReelsPage from "./screen/reels";
+import Reels from "./reels";
 
 const Tab = createBottomTabNavigator();
 const ChatStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
+const RootStack = createNativeStackNavigator();
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeScreen" component={HomeScreen} />
-      <HomeStack.Screen name="ReelsPage" component={ReelsPage} />
     </HomeStack.Navigator>
   );
 }
@@ -73,16 +73,11 @@ function ChatStackScreen() {
         component={ChatScreen}
         options={{ headerShown: false }}
       />
-      <ChatStack.Screen
-        name="Chat0"
-        component={Chat0Screen}
-        options={{ title: "채팅방" }}
-      />
     </ChatStack.Navigator>
   );
 }
 
-export default function BottomTabs() {
+function Tabs() {
   const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
@@ -209,5 +204,19 @@ export default function BottomTabs() {
         }}
       />
     </Tab.Navigator>
+  );
+}
+
+export default function RootNavigator() {
+  return (
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      <RootStack.Screen name="Tabs" component={Tabs} />
+      <RootStack.Screen name="Reels" component={Reels} />
+      <RootStack.Screen
+        name="Chat0"
+        component={Chat0Screen}
+        options={{ headerShown: true, title: "채팅방" }}
+      />
+    </RootStack.Navigator>
   );
 }
