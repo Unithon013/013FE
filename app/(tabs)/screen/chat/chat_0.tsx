@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { colors, typography } from "@/constants";
-import { ChatHeadB, ChatHead } from "@/assets";
+import { ChatHeadB, ChatHead, Back } from "@/assets";
 
 // ---- Types ----
 type Msg =
@@ -88,11 +88,11 @@ export default function ChatRoom0Screen() {
             position: "absolute",
             left: 16,
             top: insets.top + 20,
-            transform: [{ translateY: -10 }],
+            transform: [{ translateY: 0 }],
             zIndex: 1,
           }}
         >
-          <Text style={{ ...typography.h0, color: colors.white }}>‹</Text>
+          <Back />
         </Pressable>
       </View>
     );

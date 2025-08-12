@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { View, Text, Pressable, Animated, Easing } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -57,6 +57,22 @@ export default function Splash() {
         >
           <Text
             style={[
+              typography.h2,
+              { color: colors.textblack, marginVertical: 3 },
+            ]}
+          >
+            불씨에 오신 것을 환영합니다.
+          </Text>
+          <Text
+            style={[
+              typography.h2,
+              { color: colors.textblack, marginVertical: 3 },
+            ]}
+          >
+            지금부터 저에게
+          </Text>
+          <Text
+            style={[
               typography.h1,
               {
                 color: colors.primary,
@@ -67,23 +83,7 @@ export default function Splash() {
               },
             ]}
           >
-            불씨AI 매니저가,
-          </Text>
-          <Text
-            style={[
-              typography.h2,
-              { color: colors.textblack, marginVertical: 3 },
-            ]}
-          >
-            30초 자기소개를 바탕으로
-          </Text>
-          <Text
-            style={[
-              typography.h2,
-              { color: colors.textblack, marginVertical: 3 },
-            ]}
-          >
-            친구를 추천해드려요!
+            당신을 소개해주세요.
           </Text>
         </View>
         <Animated.View
