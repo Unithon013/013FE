@@ -29,7 +29,7 @@ export default function ReelsPage() {
   const { imageUrl, district, age, name } = route.params || {};
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
+    <View style={{ flex: 1, backgroundColor: colors.black }}>
       <ImageBackground
         source={{ uri: imageUrl }}
         style={{ flex: 1 }}
@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     width: "100%",
+    hight: 160,
   },
   nameLine1: { color: colors.white, fontSize: 18, fontWeight: "700" },
   nameLine2: {
