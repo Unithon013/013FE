@@ -110,7 +110,7 @@ export default function ChatScreen() {
           headers: {
             Accept: "application/json",
             // TODO: replace this test header with real auth header when ready
-            "X-User-Id": "31",
+            "X-User-Id": "22",
           },
         });
         console.log("[recs] Status:", res.status);

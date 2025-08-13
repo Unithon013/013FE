@@ -7,7 +7,7 @@ import { API_BASE_URL } from "@env";
 
 type Phase = "align" | "prep" | "recording" | "uploading";
 
-const UPLOAD_TIMEOUT_MS = 30_000; // 30초 타임아웃
+const UPLOAD_TIMEOUT_MS = 100_000; // 30초 타임아웃
 
 export default function IntroRecordScreen() {
   const camRef = useRef<CameraView>(null);
@@ -18,7 +18,7 @@ export default function IntroRecordScreen() {
 
   const [phase, setPhase] = useState<Phase>("align");
   const [count3, setCount3] = useState(3);
-  const [leftSec, setLeftSec] = useState(30);
+  const [leftSec, setLeftSec] = useState(10);
   const startedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -47,11 +47,11 @@ export default function IntroRecordScreen() {
     if (phase !== "recording" || !ready || startedRef.current) return;
     startedRef.current = true;
 
-    setLeftSec(30);
+    setLeftSec(10);
     const startedAt = Date.now();
     timerRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-      const left = Math.max(0, 30 - elapsed);
+      const left = Math.max(0, 10 - elapsed);
       setLeftSec(left);
       
       // 30초가 끝나면 녹화 종료
@@ -132,7 +132,7 @@ export default function IntroRecordScreen() {
   async function uploadVideoWithThumb(fileUri: string) {
     const ext = (fileUri.split(".").pop() || "mp4").toLowerCase();
     const mime = ext === "mov" ? "video/quicktime" : "video/mp4";
-    
+
     console.log("Posted file1:", ext);
     console.log("Posted file1", mime);
     console.log("Endpoint:", `${API_BASE_URL}/users/onboarding`);

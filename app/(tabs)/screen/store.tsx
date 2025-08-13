@@ -79,7 +79,7 @@ export default function StoreScreen() {
               ? "포인트 불러오는 중…"
               : meError
               ? "포인트를 불러오지 못했습니다"
-              : `포인트 ${mePoint.toLocaleString()}P`}
+              : `장작 ${mePoint.toLocaleString()}개`}
           </Text>
         </View>
       </View>
@@ -88,7 +88,10 @@ export default function StoreScreen() {
           <View style={styles.headerBar} />
           <Text style={styles.headerTitle}>멤버쉽</Text>
         </View>
-        <StorePre />
+        <View style={styles.storeWrap}>
+          <StorePre />
+        </View>
+        
         <View style={styles.headerWrap}>
           <View style={styles.headerBar} />
           <Text style={styles.headerTitle}>개별 구매</Text>
@@ -117,11 +120,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 13,
-    paddingBottom: 13,
+    paddingTop: 8,
+    paddingBottom: 8,
     backgroundColor: colors.white,
-    elevation: 2,
-    zIndex: 1,
+  },
+  storeWrap:{
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerBar: {
     width: 8,
