@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,11 @@ import {
   TouchableOpacity,
   ListRenderItem,
 } from "react-native";
-import {
-  SafeAreaView,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, typography } from "@/constants";
+import { API_BASE_URL } from "@env";
 import { useNavigation } from "@react-navigation/native";
+import * as VideoThumbnails from "expo-video-thumbnails";
 
 // --- Dummy avatar requires (must be static for Metro bundler) ---
 const AVATARS = [
@@ -99,6 +99,90 @@ export default function ChatScreen() {
   const [page, setPage] = useState(0);
   const [data, setData] = useState<ChatItem[]>(() => makeChunk(0));
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const url = `${API_BASE_URL}/recommendations`;
+        console.log("[recs] Fetching:", url);
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            // TODO: replace this test header with real auth header when ready
+            "X-User-Id": "22",
+          },
+        });
+        console.log("[recs] Status:", res.status);
+        const body = await res.json();
+        console.log("[recs] JSON:", body);
+        if (!Array.isArray(body) || body.length === 0) return;
+        const first = body[0];
+
+        const parseHobbies = (h: any): string[] => {
+          if (Array.isArray(h)) return h.filter(Boolean);
+          if (!h || typeof h !== "string") return [];
+          // Try parsing JSON array string like "[\"산책\", \"수다\"]"
+          if (h.trim().startsWith("[") && h.trim().endsWith("]")) {
+            try {
+              const arr = JSON.parse(h);
+              if (Array.isArray(arr)) return arr.filter(Boolean);
+            } catch (err) {
+              console.log("[parseHobbies] JSON parse error:", err);
+            }
+          }
+          // split by comma or space
+          return h
+            .split(/[\s,]+/)
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+        };
+
+        const name = first?.name ?? "";
+        const ageNum =
+          typeof first?.age === "number"
+            ? first.age
+            : parseInt(String(first?.age || ""), 10);
+        const location = first?.location ?? "";
+        const hobbiesArr = parseHobbies(first?.hobbies);
+        const tags = [location, ...hobbiesArr].filter(Boolean).slice(0, 3);
+
+        // Build avatar from video thumbnail (fallback to profileUrl)
+        const toAbs = (u?: string) =>
+          u ? (u.startsWith("http") ? u : `${API_BASE_URL}${u}`) : "";
+        let newAvatar: any = null;
+        const videoAbs = toAbs(first?.videoUrl ?? "");
+        if (videoAbs) {
+          try {
+            const { uri } = await VideoThumbnails.getThumbnailAsync(videoAbs, {
+              time: 1000,
+            });
+            if (uri) newAvatar = { uri };
+          } catch (err) {
+            console.log("[chat] thumbnail error:", err);
+          }
+        }
+        if (!newAvatar) {
+          const prof = toAbs(first?.profileUrl ?? "");
+          if (prof) newAvatar = { uri: prof };
+        }
+
+        setData((prev) => {
+          if (!prev || prev.length === 0) return prev;
+          const replaced: ChatItem = {
+            ...prev[0],
+            name: name || prev[0].name,
+            age: isNaN(ageNum) ? prev[0].age : ageNum,
+            tags: tags.length ? tags : prev[0].tags,
+            avatar: newAvatar || prev[0].avatar,
+          };
+          return [replaced, ...prev.slice(1)];
+        });
+      } catch (e) {
+        console.log("[recs] Fetch error:", e);
+      }
+    })();
+  }, [API_BASE_URL]);
 
   const loadMore = useCallback(() => {
     if (loading) return;

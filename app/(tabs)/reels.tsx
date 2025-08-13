@@ -165,7 +165,7 @@ export default function Reels() {
           <Text style={styles.backText}> 이전 </Text>
         </Pressable>
         <View style={styles.overlay}>
-          <View style={{ justifyContent: "center", flex: 1 }}>
+          <View style={{ justifyContent: "flex-start", flex: 1 }}>
             <Text style={styles.nameLine1}>
               {district}, {age}세
             </Text>
@@ -173,28 +173,6 @@ export default function Reels() {
           </View>
           <Pressable style={styles.videoBtn} onPress={onPressCTA}>
             <Text style={styles.videoBtnText}>연락하기</Text>
-            <Pressable
-              style={{
-                padding: 10,
-                backgroundColor: "red",
-                alignSelf: "center",
-                marginVertical: 10,
-              }}
-              onPress={uploadTestVideo}
-            >
-              <Text style={{ color: "#fff" }}>테스트 업로드</Text>
-            </Pressable>
-            <Pressable
-              style={{
-                padding: 10,
-                backgroundColor: "blue",
-                alignSelf: "center",
-                marginVertical: 10,
-              }}
-              onPress={getUserMeTest}
-            >
-              <Text style={{ color: "#fff" }}>유저 조회</Text>
-            </Pressable>
           </Pressable>
         </View>
       </ImageBackground>
@@ -274,13 +252,18 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     position: "absolute",
     bottom: 0,
     width: "100%",
     height: 160,
   },
-  nameLine1: { color: colors.white, fontSize: 18, fontWeight: "700" },
+  nameLine1: {
+    marginTop: 5,
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: "700",
+  },
   nameLine2: {
     color: colors.white,
     fontSize: 28,
@@ -289,7 +272,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   videoBtn: {
-    alignSelf: "flex-start",
     alignItems: "center",
     backgroundColor: colors.primary,
     paddingHorizontal: 15,
