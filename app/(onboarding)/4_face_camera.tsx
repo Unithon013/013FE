@@ -1,9 +1,25 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Image, Animated } from "react-native";
-import { CameraView, useCameraPermissions, useMicrophonePermissions} from "expo-camera";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Image,
+  Animated,
+} from "react-native";
+import {
+  CameraView,
+  useCameraPermissions,
+  useMicrophonePermissions,
+} from "expo-camera";
 import { useRouter } from "expo-router";
 import { colors, typography } from "@/constants";
 import { API_BASE_URL } from "@env";
+<<<<<<< HEAD
+=======
+import * as VideoThumbnails from "expo-video-thumbnails";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+>>>>>>> 7274c67 (feat : 비동기 처리로 데이터렌더링 최적화)
 
 type Phase = "align" | "prep" | "recording" | "uploading";
 
@@ -53,7 +69,7 @@ export default function IntroRecordScreen() {
       const elapsed = Math.floor((Date.now() - startedAt) / 1000);
       const left = Math.max(0, 10 - elapsed);
       setLeftSec(left);
-      
+
       // 30초가 끝나면 녹화 종료
       if (left === 0) {
         if (timerRef.current) clearInterval(timerRef.current);
@@ -66,13 +82,13 @@ export default function IntroRecordScreen() {
   //반투명 검정 오버레이 천천히 사라지는 애니메이션
   useEffect(() => {
     if (phase === "align") {
-        introOpacity.setValue(0.95);
-        setIntroGone(false);
-        Animated.timing(introOpacity, {
+      introOpacity.setValue(0.95);
+      setIntroGone(false);
+      Animated.timing(introOpacity, {
         toValue: 0,
-        duration: 3000, 
+        duration: 3000,
         useNativeDriver: true,
-        }).start(() => setIntroGone(true)); 
+      }).start(() => setIntroGone(true));
     }
   }, [phase]);
 
@@ -85,12 +101,14 @@ export default function IntroRecordScreen() {
   async function startRecording() {
     const ok = await ensurePerms();
     if (!ok) {
-        console.warn("권한 허용 필요");
-        return (
+      console.warn("권한 허용 필요");
+      return (
         <View style={styles.center}>
-            <Text style={{ color: "#fff" }}>카메라/마이크 권한을 허용해주세요.</Text>
+          <Text style={{ color: "#fff" }}>
+            카메라/마이크 권한을 허용해주세요.
+          </Text>
         </View>
-        );
+      );
     }
     try {
       const result = await camRef.current?.recordAsync({ maxDuration: 30 });
@@ -103,7 +121,7 @@ export default function IntroRecordScreen() {
             .catch((e) => console.log("upload failed:", e));
           // 화면은 즉시 이동
           router.replace("/(onboarding)/5_profile_done");
-                  } catch (err) {
+        } catch (err) {
           console.warn("업로드 실패:", err);
           // 실패 시 사용자 안내 또는 재시도 UX
           setPhase("align");
@@ -145,7 +163,17 @@ export default function IntroRecordScreen() {
       type: mime,
     } as any);
 
+<<<<<<< HEAD
     
+=======
+    if (thumbUri) {
+      form.append("profileUrls", {
+        uri: thumbUri,
+        name: "thumb.jpg",
+        type: "image/jpeg",
+      } as any);
+    }
+>>>>>>> 7274c67 (feat : 비동기 처리로 데이터렌더링 최적화)
     // fetch 타임아웃 처리
     const controller = new AbortController();
     const to = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
@@ -160,11 +188,41 @@ export default function IntroRecordScreen() {
       });
       clearTimeout(to);
 
-      const isJson = res.headers.get("content-type")?.includes("application/json");
+      const isJson = res.headers
+        .get("content-type")
+        ?.includes("application/json");
       const data = isJson ? await res.json() : await res.text();
       console.log("status:", res.status, "body:", data);
 
-      if (!res.ok) throw new Error(typeof data === "string" ? data : data?.message || `HTTP ${res.status}`);
+      // Save X-User-Id from onboarding response for later API calls
+      try {
+        const headerUserId =
+          res.headers.get("X-User-Id") || res.headers.get("x-user-id");
+        // If server returns userId in body (JSON), fallback to that
+        const bodyUserId =
+          isJson &&
+          data &&
+          typeof data === "object" &&
+          "userId" in (data as any)
+            ? String((data as any).userId)
+            : undefined;
+        const userIdToStore = headerUserId || bodyUserId;
+        if (userIdToStore) {
+          await AsyncStorage.setItem("userId", String(userIdToStore));
+          console.log("[onboarding] stored userId:", userIdToStore);
+        } else {
+          console.log("[onboarding] no X-User-Id header/body found");
+        }
+      } catch (e) {
+        console.log("[onboarding] store userId failed:", e);
+      }
+
+      if (!res.ok)
+        throw new Error(
+          typeof data === "string"
+            ? data
+            : data?.message || `HTTP ${res.status}`
+        );
       return data;
     } catch (e) {
       clearTimeout(to);
@@ -184,35 +242,37 @@ export default function IntroRecordScreen() {
         onCameraReady={() => setReady(true)}
       />
 
-    {phase === "align" && (
-    <>
-        {/* 검정 반투명 오버레이 (2초 후 페이드아웃) */}
-        {!introGone && (
-        <Animated.View
-            pointerEvents="none"
-            style={[StyleSheet.absoluteFill,
-      { backgroundColor: "black", opacity: introOpacity },]}
-        />
-        )}
-        <View style={styles.overlayFull} pointerEvents="none">
-            <Image
-                source={require("@/assets/faceGuide.png")}
-                style={styles.guideImg}
-                resizeMode="contain"
+      {phase === "align" && (
+        <>
+          {/* 검정 반투명 오버레이 (2초 후 페이드아웃) */}
+          {!introGone && (
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: "black", opacity: introOpacity },
+              ]}
             />
-        </View>
-        <View style={styles.topTextWrap} pointerEvents="none">
+          )}
+          <View style={styles.overlayFull} pointerEvents="none">
+            <Image
+              source={require("@/assets/faceGuide.png")}
+              style={styles.guideImg}
+              resizeMode="contain"
+            />
+          </View>
+          <View style={styles.topTextWrap} pointerEvents="none">
             <Text style={styles.titleWhite1}>
-                화면에 맞춰{"\n"}얼굴을 보여주세요
+              화면에 맞춰{"\n"}얼굴을 보여주세요
             </Text>
-        </View>
-        <View style={styles.bottomWrap}>
-          <Pressable style={styles.cta} onPress={handleFaceRecognized}>
-            <Text style={styles.ctaText}>촬영 시작하기</Text>
-          </Pressable>
-        </View>
-    </>
-    )}
+          </View>
+          <View style={styles.bottomWrap}>
+            <Pressable style={styles.cta} onPress={handleFaceRecognized}>
+              <Text style={styles.ctaText}>촬영 시작하기</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
 
       {phase === "prep" && (
         <>
@@ -241,8 +301,15 @@ export default function IntroRecordScreen() {
           </View>
 
           <View pointerEvents="none" style={styles.bottomHelpWrap}>
-            <View style={[styles.bottomHelpCard,{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }]}>
-              <Text style={styles.bottomHelpOrange}>이름 나이 성별 관심사 취미는{" "}</Text>
+            <View
+              style={[
+                styles.bottomHelpCard,
+                { backgroundColor: "rgba(0, 0, 0, 0.7)" },
+              ]}
+            >
+              <Text style={styles.bottomHelpOrange}>
+                이름 나이 성별 관심사 취미는{" "}
+              </Text>
               <Text style={styles.bottomHelpWhite}>필수 항목이에요!</Text>
             </View>
           </View>
@@ -254,29 +321,30 @@ export default function IntroRecordScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.textblack },
-  center: { 
+  center: {
     flex: 1,
-    alignItems: "center", 
+    alignItems: "center",
     justifyContent: "center",
   },
-  overlayFull: { 
-    ...StyleSheet.absoluteFillObject, 
-    width: "100%", 
+  overlayFull: {
+    ...StyleSheet.absoluteFillObject,
+    width: "100%",
     height: "100%",
-    justifyContent: 'center',  
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   guideImg: {
     width: "95%",
   },
-  dim: { 
+  dim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "black", 
+    backgroundColor: "black",
   },
   topTextWrap: {
     position: "absolute",
     top: 140,
-    left: 0, right: 0,
+    left: 0,
+    right: 0,
     alignItems: "center",
   },
   titleWhite1: {
@@ -289,106 +357,113 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 6,
   },
-  
+
   bigWhiteCenter: {
-    color: "#fff", 
-    fontSize: 24, 
-    textAlign: "center", 
+    color: "#fff",
+    fontSize: 24,
+    textAlign: "center",
     fontWeight: "bold",
-    textShadowColor: colors.textblack, 
-    textShadowOffset: { width: 1, height: 1 }, 
+    textShadowColor: colors.textblack,
+    textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 6,
   },
-  bottomWrap: { position: "absolute", 
-    left: 0, right: 0, 
-    bottom: 50, 
-    alignItems: "center" },
-  cta: {
-    minWidth: "72%", paddingVertical: 16, paddingHorizontal: 22,
-    borderRadius: 22, backgroundColor: colors.primary, alignItems: "center",
+  bottomWrap: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 50,
+    alignItems: "center",
   },
-  ctaText: { color:colors.white, ...typography.h2 },
-  topTitleWrap: { 
-    width: "100%", 
+  cta: {
+    minWidth: "72%",
+    paddingVertical: 16,
+    paddingHorizontal: 22,
+    borderRadius: 22,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+  },
+  ctaText: { color: colors.white, ...typography.h2 },
+  topTitleWrap: {
+    width: "100%",
     alignItems: "center",
     marginTop: 30,
   },
-  titleOrange: { 
-    color: colors.primary, 
-    fontSize: 28, 
-    fontWeight: "800", 
-    marginBottom: 12 
+  titleOrange: {
+    color: colors.primary,
+    fontSize: 28,
+    fontWeight: "800",
+    marginBottom: 12,
   },
   titleWhite: {
-    color: "#fff", 
-    fontSize: 26, 
+    color: "#fff",
+    fontSize: 26,
     fontWeight: "700",
-    textShadowColor: colors.textblack, 
-    textShadowOffset: { width: 1, height: 1 }, 
+    textShadowColor: colors.textblack,
+    textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 6,
   },
   countCircle: {
-    width: 160, 
-    height: 160, 
+    width: 160,
+    height: 160,
     borderRadius: 80,
-    borderWidth: 8, 
+    borderWidth: 8,
     borderColor: colors.primary,
-    alignItems: "center", 
+    alignItems: "center",
     justifyContent: "center",
   },
-  countText: { 
-    color: colors.primary, 
-    fontSize: 80, 
-    fontWeight: "900" 
+  countText: {
+    color: colors.primary,
+    fontSize: 80,
+    fontWeight: "900",
   },
 
-  topRight: { 
-    position: "absolute", 
-    top: 28, 
-    right: 20 
+  topRight: {
+    position: "absolute",
+    top: 28,
+    right: 20,
   },
   timerPill: {
-    flexDirection: "row", 
+    flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12, 
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 18, 
+    borderRadius: 18,
     backgroundColor: colors.textblack,
   },
   clockDot: {
-    width: 18, 
-    height: 18, 
-    borderRadius: 9, 
-    borderWidth: 3, 
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 3,
     borderColor: colors.primary,
     marginRight: 8,
   },
-  timerText: { 
-    color: "#fff", 
-    fontSize: 16, 
-    fontWeight: "700" 
+  timerText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
   },
 
-  bottomHelpWrap: { 
-    position: "absolute", 
+  bottomHelpWrap: {
+    position: "absolute",
     bottom: 0,
     width: "100%",
-    alignItems: "center" 
+    alignItems: "center",
   },
   bottomHelpCard: {
-    backgroundColor: colors.textblack, 
+    backgroundColor: colors.textblack,
     alignItems: "center",
     borderRadius: 18,
-    width: "100%", 
-    paddingHorizontal: 20, 
+    width: "100%",
+    paddingHorizontal: 20,
     paddingVertical: 30,
   },
-  bottomHelpOrange: { 
+  bottomHelpOrange: {
     color: colors.primary,
     ...typography.h2,
   },
-  bottomHelpWhite: { 
-    color: "#fff", 
+  bottomHelpWhite: {
+    color: "#fff",
     ...typography.h2,
   },
 });

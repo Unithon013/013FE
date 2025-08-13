@@ -21,10 +21,11 @@ import {
 } from "react-native-safe-area-context";
 
 import { colors, typography } from "@/constants";
-import * as VideoThumbnails from "expo-video-thumbnails";
+
 import { Video as ExpoVideo, ResizeMode } from "expo-av";
 
 import { API_BASE_URL } from "@env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Profile = {
   id: string;
@@ -83,12 +84,18 @@ export default function MypageScreen() {
       try {
         const url = `${API_BASE_URL}/users/me`;
         console.log("[mypage users/me] Fetching:", url);
+        const stored = await AsyncStorage.getItem("userId");
+        const userId = stored && stored.length > 0 ? stored : "22";
         const res = await fetch(url, {
           method: "GET",
           headers: {
             Accept: "application/json",
+<<<<<<< HEAD
             // TODO: replace this test header with real auth header when ready
             "X-User-Id": "22",
+=======
+            "X-User-Id": userId,
+>>>>>>> 7274c67 (feat : 비동기 처리로 데이터렌더링 최적화)
           },
         });
         console.log("[mypage users/me] Status:", res.status);
@@ -171,20 +178,8 @@ export default function MypageScreen() {
           : "";
         setVideoUrl(absoluteVideo);
 
-        // avatar thumbnail: prefer video thumbnail, fallback to profileUrl
-        try {
-          if (absoluteVideo) {
-            const { uri } = await VideoThumbnails.getThumbnailAsync(
-              absoluteVideo,
-              { time: 1000 }
-            );
-            if (uri) setAvatarUri(uri);
-          }
-        } catch (err) {
-          console.log("[mypage] thumbnail error:", err);
-        } finally {
-          if (!avatarUri && absoluteProfile) setAvatarUri(absoluteProfile);
-        }
+        // avatar: use profileUrl directly (no thumbnail generation)
+        if (absoluteProfile) setAvatarUri(absoluteProfile);
       } catch (e) {
         console.log("[mypage users/me] Fetch error:", e);
       }

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React , { useEffect } from 'react';
+=======
+import React from "react";
+>>>>>>> 7274c67 (feat : 비동기 처리로 데이터렌더링 최적화)
 import { View, Text, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { colors } from "@/constants";
@@ -13,7 +17,7 @@ export default function LaunchScreen() {
       style={{
         flex: 1,
       }}
-      onPress={() => router.push("/(onboarding)/2_splash")}
+      onPress={() => router.push("/(onboarding)/6_start")}
     >
       <View
         style={{

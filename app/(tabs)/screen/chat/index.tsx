@@ -110,7 +110,11 @@ export default function ChatScreen() {
           headers: {
             Accept: "application/json",
             // TODO: replace this test header with real auth header when ready
+<<<<<<< HEAD
             "X-User-Id": "22",
+=======
+            "X-User-Id": "10",
+>>>>>>> 7274c67 (feat : 비동기 처리로 데이터렌더링 최적화)
           },
         });
         console.log("[recs] Status:", res.status);

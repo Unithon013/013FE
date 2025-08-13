@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Text,
@@ -32,9 +33,11 @@ export default function StoreScreen() {
       setMeLoading(true);
       setMeError(false);
       try {
+        const storedUserId = await AsyncStorage.getItem("userId");
+        const userId = storedUserId || "10";
         const res = await fetch(`${API_BASE_URL}/users/me`, {
           headers: {
-            "X-User-Id": "22",
+            "X-User-Id": userId,
           },
         });
         if (!res.ok) throw new Error("Failed to fetch");

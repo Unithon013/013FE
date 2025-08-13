@@ -9,11 +9,13 @@ import {
   StyleSheet,
   Animated,
   Modal,
+  LogBox,
 } from "react-native";
 
 import FirewoodIcon from "@/assets/modal/firewood.svg";
 import { colors, typography } from "@/constants";
 import { Back } from "@/assets";
+import { Video as ExpoVideo, ResizeMode } from "expo-av";
 
 export default function Reels() {
   const route = useRoute();
@@ -24,6 +26,29 @@ export default function Reels() {
     name = "",
   } = (route as any).params || {};
   const navigation = useNavigation<any>();
+  const rawVideo = (route as any).params?.videoUrl ?? "";
+  const videoUrl = rawVideo.startsWith("http")
+    ? rawVideo
+    : `${API_BASE_URL}${rawVideo}`;
+
+  useEffect(() => {
+    console.log("[Reels][Video] Resolved videoUrl:", videoUrl);
+    if (!videoUrl) return;
+    (async () => {
+      try {
+        const head = await fetch(videoUrl, { method: "HEAD" });
+        const ctype = head.headers?.get?.("content-type");
+        console.log(
+          "[Reels][Video] HEAD status:",
+          head.status,
+          "ctype:",
+          ctype
+        );
+      } catch (err) {
+        console.log("[Reels][Video] HEAD error:", err);
+      }
+    })();
+  }, [videoUrl]);
 
   //연락하기 버튼 누른 후 장작 결제 모달
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -36,6 +61,15 @@ export default function Reels() {
 
   const COST_FOR_CHAT = 10; // 1명 연락당 장작 소모
   const [woodBalance, setWoodBalance] = useState(40); // 잔여 장작
+
+  useEffect(() => {
+    // Hide expo-av deprecation warning (we intentionally use expo-av)
+    LogBox.ignoreLogs([
+      "[expo-av]: Video component from `expo-av` is deprecated in favor of `expo-video`.",
+      "[expo-av]: Video component from `expo-av` is deprecated in favor of `expo-video`",
+      "Video component from `expo-av` is deprecated in favor of `expo-video`",
+    ]);
+  }, []);
 
   const confirmPurchase = async () => {
     // 잔여/비용 체크 후 처리
@@ -153,13 +187,67 @@ export default function Reels() {
     }
   };
 
+  const firstStatusRef = useRef<boolean>(true);
+  const lastStatusRef = useRef<any>(null);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.black }}>
-      <ImageBackground
-        source={{ uri: imageUrl }}
-        style={{ flex: 1 }}
-        resizeMode="cover"
-      >
+      <View style={{ flex: 1 }}>
+        <ExpoVideo
+          source={{ uri: videoUrl }}
+          style={StyleSheet.absoluteFill}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay
+          isLooping
+          isMuted
+          useNativeControls={false}
+          onLoadStart={() => {
+            console.log("[Reels][Video] onLoadStart");
+          }}
+          onLoad={(payload) => {
+            try {
+              const { durationMillis, naturalSize } = payload as any;
+              console.log("[Reels][Video] onLoad:", {
+                durationMillis,
+                naturalSize,
+              });
+            } catch {
+              console.log("[Reels][Video] onLoad (raw):", payload);
+            }
+          }}
+          onError={(e) => {
+            console.log("[Reels][Video] onError:", JSON.stringify(e, null, 2));
+          }}
+          onReadyForDisplay={(info) => {
+            console.log("[Reels][Video] onReadyForDisplay:", info);
+          }}
+          onPlaybackStatusUpdate={(status) => {
+            // Log the first status and when status meaningfully changes
+            try {
+              if (firstStatusRef.current) {
+                firstStatusRef.current = false;
+                console.log("[Reels][Video] status(init):", status);
+              } else {
+                const prev = lastStatusRef.current || {};
+                if (
+                  prev.isLoaded !== (status as any).isLoaded ||
+                  prev.isPlaying !== (status as any).isPlaying ||
+                  prev.shouldPlay !== (status as any).shouldPlay ||
+                  prev.positionMillis !== (status as any).positionMillis ||
+                  prev.error !== (status as any).error
+                ) {
+                  console.log("[Reels][Video] status(update):", status);
+                }
+              }
+              lastStatusRef.current = status;
+            } catch {
+              console.log("[Reels][Video] status(raw):", status);
+            }
+          }}
+          onFullscreenUpdate={(evt) => {
+            console.log("[Reels][Video] onFullscreenUpdate:", evt);
+          }}
+        />
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Back />
           <Text style={styles.backText}> 이전 </Text>
@@ -175,7 +263,7 @@ export default function Reels() {
             <Text style={styles.videoBtnText}>연락하기</Text>
           </Pressable>
         </View>
-      </ImageBackground>
+      </View>
       {/* ===== 바텀시트 모달 ===== */}
       <Modal
         visible={sheetOpen}

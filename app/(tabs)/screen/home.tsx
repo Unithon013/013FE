@@ -30,7 +30,7 @@ import { HomeCharacter } from "@/assets";
 
 import { colors, typography } from "../../../constants";
 import { API_BASE_URL } from "@env";
-import * as VideoThumbnails from "expo-video-thumbnails";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const PAGE_WIDTH = width; //FlatList 페이징 단위
@@ -45,7 +45,17 @@ type Profile = {
   district: string;
   hobbies: string;
   location: string;
-  photo: string; // 이미지 URL 또는 require()
+  photo: string; // 썸네일(비디오 썸네일 또는 프로필 이미지)
+  videoUrl: string; // 절대경로 비디오 URL
+};
+
+// Read userId saved during onboarding (fallback for dev)
+const getUserId = async (): Promise<string> => {
+  try {
+    const stored = await AsyncStorage.getItem("userId");
+    if (stored && stored.length > 0) return stored;
+  } catch {}
+  return "22";
 };
 
 // ===== Common helpers for parsing API shapes =====
@@ -84,7 +94,7 @@ const extractArray = (body: any): any[] | null => {
   if (Array.isArray(body.results)) return body.results;
   return null;
 };
-const normalizeProfile = async (it: any, idx: number): Promise<Profile> => {
+const normalizeProfile = (it: any, idx: number): Profile => {
   const id = String(it?.id ?? idx + 1);
   const name = it?.name ?? "";
   const age = parseAge(it?.age);
@@ -93,18 +103,9 @@ const normalizeProfile = async (it: any, idx: number): Promise<Profile> => {
   const hobbies = parseHobbies(it?.hobbies);
   const videoAbs = toAbs(it?.videoUrl ?? "");
 
-  let photo = toAbs(it?.profileUrl || "");
-  if (videoAbs) {
-    try {
-      const { uri } = await VideoThumbnails.getThumbnailAsync(videoAbs, {
-        time: 1000,
-      });
-      // use video thumbnail if available
-      if (uri) photo = uri;
-    } catch (e) {
-      console.log("[normalizeProfile] thumbnail error for", videoAbs, e);
-    }
-  }
+  // Use profileUrl ONLY (no video thumbnail generation)
+  const photo = toAbs(it?.profileUrl || "");
+
   return {
     id,
     name,
@@ -113,6 +114,7 @@ const normalizeProfile = async (it: any, idx: number): Promise<Profile> => {
     hobbies,
     location: locationStr,
     photo,
+    videoUrl: videoAbs,
   };
 };
 
@@ -133,7 +135,7 @@ export default function HomeScreen() {
       try {
         // 위치가 필요한 API일 수 있으므로, 내 위치가 준비될 때까지 대기 (없어도 우선 시도)
         const base = `${API_BASE_URL}/recommendations`;
-        const userId = meId || "1"; // fallback for testing
+        const userId = await getUserId();
         const headers = {
           Accept: "application/json",
           "X-User-Id": userId,
@@ -207,8 +209,8 @@ export default function HomeScreen() {
         );
         if (!finalList || finalList.length === 0) return;
 
-        const mapped = await Promise.all(
-          finalList.map((it: any, idx: number) => normalizeProfile(it, idx))
+        const mapped = finalList.map((it: any, idx: number) =>
+          normalizeProfile(it, idx)
         );
 
         if (!isCancelled) {
@@ -267,6 +269,7 @@ export default function HomeScreen() {
   // 추천받기 눌렀을 때 더 불러오는 예 + 실제 API로 교체함
   async function fetchMore(n: number) {
     try {
+      const userId = await getUserId();
       const url = `${API_BASE_URL}/recommendations/additional`;
       console.log("[home recs additional] POST:", url, "count=", n);
 
@@ -275,7 +278,11 @@ export default function HomeScreen() {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
+<<<<<<< HEAD
           "X-User-Id": "22", // TODO: 실제 인증으로 교체
+=======
+          "X-User-Id": userId,
+>>>>>>> 7274c67 (feat : 비동기 처리로 데이터렌더링 최적화)
         },
         body: JSON.stringify({ count: String(n) }), // 스펙상 문자열
       });
@@ -316,8 +323,8 @@ export default function HomeScreen() {
         return;
       }
 
-      const more: Profile[] = await Promise.all(
-        list.map((it: any, idx: number) => normalizeProfile(it, idx))
+      const more: Profile[] = list.map((it: any, idx: number) =>
+        normalizeProfile(it, idx)
       );
 
       // 리스트 뒤에 붙이고 첫 새 카드로 스크롤
@@ -404,6 +411,7 @@ export default function HomeScreen() {
                     district: p.district,
                     age: p.age,
                     name: p.name,
+                    videoUrl: p.videoUrl,
                   })
                 }
               >
@@ -464,12 +472,17 @@ export default function HomeScreen() {
     (async () => {
       try {
         const url = `${API_BASE_URL}/users/me`;
+        const userId = await getUserId();
         console.log("[users/me] Fetching:", url);
         const res = await fetch(url, {
           method: "GET",
           headers: {
             Accept: "application/json",
+<<<<<<< HEAD
             "X-User-Id": "22",
+=======
+            "X-User-Id": userId,
+>>>>>>> 7274c67 (feat : 비동기 처리로 데이터렌더링 최적화)
           },
         });
         console.log("[users/me] Status:", res.status);

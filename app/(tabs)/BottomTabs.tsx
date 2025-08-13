@@ -1,5 +1,5 @@
 // BottomTabs.tsx
-import React from "react";
+import React, { useEffect } from "react";
 //아이콘
 import {
   HomeIcon,
@@ -10,7 +10,11 @@ import {
 } from "../../components/icon/bottombar";
 import TextLogo from "../../assets/textLogo.svg";
 //폰트, 컬러
+
 import { colors, typography } from "../../constants";
+import { queryClient } from "@/lib/query";
+import { API_BASE_URL } from "@env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Text, View } from "react-native";
 
@@ -32,6 +36,17 @@ const Tab = createBottomTabNavigator();
 const ChatStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const RootStack = createNativeStackNavigator();
+
+// Prefetch target: current user profile (reads userId saved during onboarding)
+async function fetchMe() {
+  const stored = await AsyncStorage.getItem("userId");
+  const userId = stored && stored.length > 0 ? stored : "22"; // fallback for dev
+  const res = await fetch(`${API_BASE_URL}/users/me`, {
+    headers: { Accept: "application/json", "X-User-Id": userId },
+  });
+  if (!res.ok) throw new Error("me load failed");
+  return res.json();
+}
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
@@ -79,6 +94,14 @@ function ChatStackScreen() {
 
 function Tabs() {
   const insets = useSafeAreaInsets();
+  // Prefetch "me" once the tab container mounts so MyPage renders instantly
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: ["me"],
+      queryFn: fetchMe,
+      staleTime: 60 * 1000,
+    });
+  }, []);
   return (
     <Tab.Navigator
       screenOptions={{
