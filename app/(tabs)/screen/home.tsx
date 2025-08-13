@@ -276,7 +276,7 @@ export default function HomeScreen() {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          "X-User-Id": "22", // TODO: 실제 인증으로 교체
+          "X-User-Id": "31", // TODO: 실제 인증으로 교체
         },
         body: JSON.stringify({ count: String(n) }), // 스펙상 문자열
       });
@@ -470,8 +470,7 @@ export default function HomeScreen() {
           method: "GET",
           headers: {
             Accept: "application/json",
-            // TODO: replace this test header with real auth header when ready
-            "X-User-Id": "22",
+            "X-User-Id": "31",
           },
         });
         console.log("[users/me] Status:", res.status);

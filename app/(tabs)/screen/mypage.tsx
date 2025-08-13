@@ -88,7 +88,7 @@ export default function MypageScreen() {
           headers: {
             Accept: "application/json",
             // TODO: replace this test header with real auth header when ready
-            "X-User-Id": "26",
+            "X-User-Id": "31",
           },
         });
         console.log("[mypage users/me] Status:", res.status);

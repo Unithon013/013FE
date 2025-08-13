@@ -34,7 +34,7 @@ export default function Reels() {
   const sheetHRef = useRef(0);
   const [sheetReady, setSheetReady] = useState(false);
 
-  const COST_FOR_CHAT = 10; // 1명 추가당 장작 소모
+  const COST_FOR_CHAT = 10; // 1명 연락당 장작 소모
   const [woodBalance, setWoodBalance] = useState(40); // 잔여 장작
 
   const confirmPurchase = async () => {
@@ -92,6 +92,65 @@ export default function Reels() {
         useNativeDriver: true,
       }),
     ]).start(() => setSheetOpen(false));
+  };
+
+  // Upload test video function
+  const uploadTestVideo = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "video/*",
+      });
+      console.log("Picked file:", result);
+      if (result.canceled) return;
+      const formData = new FormData();
+      formData.append("video", {
+        uri: result.assets[0].uri,
+        name: result.assets[0].name || "test.mp4",
+        type: result.assets[0].mimeType || "video/mp4",
+      } as any);
+      formData.append("latitude", "37.5665");
+      formData.append("longitude", "126.9780");
+      console.log("Uploading to:", `${API_BASE_URL}/users/onboarding`);
+      const res = await fetch(`${API_BASE_URL}/users/onboarding`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Accept: "application/json",
+        },
+        body: formData,
+      });
+      console.log("Response status:", res.status);
+      // Log headers as object for readability
+      if (res.headers && typeof res.headers.forEach === "function") {
+        const headersObj: Record<string, string> = {};
+        res.headers.forEach((value, key) => {
+          headersObj[key] = value;
+        });
+        console.log("Response headers:", headersObj);
+      }
+      const data = await res.json();
+      console.log("Returned task_id:", data);
+    } catch (err) {
+      console.error("Upload error:", err);
+    }
+  };
+
+  const getUserMeTest = async () => {
+    try {
+      const url = `${API_BASE_URL}/users/me`;
+      console.log("Fetching user me:", url);
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      console.log("UserMe Response status:", res.status);
+      const data = await res.json();
+      console.log("UserMe JSON body:", data);
+    } catch (err) {
+      console.error("UserMe fetch error:", err);
+    }
   };
 
   return (
