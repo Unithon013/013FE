@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as DocumentPicker from "expo-document-picker";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { API_BASE_URL } from "@env";
 import {
@@ -35,7 +34,7 @@ export default function Reels() {
   const sheetHRef = useRef(0);
   const [sheetReady, setSheetReady] = useState(false);
 
-  const COST_FOR_CHAT = 10; // 1명 추가당 장작 소모
+  const COST_FOR_CHAT = 10; // 1명 연락당 장작 소모
   const [woodBalance, setWoodBalance] = useState(40); // 잔여 장작
 
   const confirmPurchase = async () => {
@@ -144,7 +143,6 @@ export default function Reels() {
         method: "GET",
         headers: {
           Accept: "application/json",
-          "X-User-Id": "5",
         },
       });
       console.log("UserMe Response status:", res.status);
