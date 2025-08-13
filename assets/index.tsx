@@ -148,6 +148,17 @@ export function StoreHeader(props: Omit<ImageProps, "source">) {
   );
 }
 
+export function StorePre(props: Omit<ImageProps, "source">) {
+  return (
+    <Image
+      source={require("@/assets/store/store_p.png")}
+      resizeMode="contain"
+      {...props}
+      style={{ width: 360, height: 336 }}
+    />
+  );
+}
+
 export function Tree() {
   return (
     <Image
@@ -162,7 +173,7 @@ export function GroupCharacter() {
   return (
     <Image
       source={require("@/assets/groupCharacter.png")}
-      style={{ width: 74, height:65}}
+      style={{ width: 74, height: 65 }}
       resizeMode="contain"
     />
   );
