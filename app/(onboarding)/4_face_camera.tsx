@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, Pressable, Image, Animated } from "react-native
 import { CameraView, useCameraPermissions, useMicrophonePermissions} from "expo-camera";
 import { useRouter } from "expo-router";
 import { colors, typography } from "@/constants";
-import LottieView from 'lottie-react-native';
+import { API_BASE_URL } from "@env";
+import * as VideoThumbnails from "expo-video-thumbnails";
 
 type Phase = "align" | "prep" | "recording" | "uploading";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://api.example.com";
+const UPLOAD_TIMEOUT_MS = 30_000; // 30초 타임아웃
 
 export default function IntroRecordScreen() {
   const camRef = useRef<CameraView>(null);
@@ -18,7 +19,7 @@ export default function IntroRecordScreen() {
 
   const [phase, setPhase] = useState<Phase>("align");
   const [count3, setCount3] = useState(3);
-  const [leftSec, setLeftSec] = useState(15);
+  const [leftSec, setLeftSec] = useState(30);
   const startedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -47,11 +48,11 @@ export default function IntroRecordScreen() {
     if (phase !== "recording" || !ready || startedRef.current) return;
     startedRef.current = true;
 
-    setLeftSec(5);
+    setLeftSec(30);
     const startedAt = Date.now();
     timerRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-      const left = Math.max(0, 5 - elapsed);
+      const left = Math.max(0, 30 - elapsed);
       setLeftSec(left);
       
       // 30초가 끝나면 녹화 종료
@@ -95,9 +96,19 @@ export default function IntroRecordScreen() {
     try {
       const result = await camRef.current?.recordAsync({ maxDuration: 30 });
       if (result?.uri) {
-        setPhase("uploading");
-        // await uploadVideo(result.uri); // 나중에 구현
-        router.replace("/(onboarding)/5_profile_done");
+        try {
+          setPhase("uploading");
+          // 업로드는 백그라운드로
+          uploadVideoWithThumb(result.uri)
+            .then((r) => console.log("upload finished:", r))
+            .catch((e) => console.log("upload failed:", e));
+          // 화면은 즉시 이동
+          router.replace("/(onboarding)/5_profile_done");
+                  } catch (err) {
+          console.warn("업로드 실패:", err);
+          // 실패 시 사용자 안내 또는 재시도 UX
+          setPhase("align");
+        }
       }
     } catch (e) {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -116,6 +127,65 @@ export default function IntroRecordScreen() {
     setPhase("prep");
   }
 
+  // 파일 상단 근처에 추가
+  const UPLOAD_TIMEOUT_MS = 120_000; // 30초 타임아웃
+
+  async function uploadVideoWithThumb(fileUri: string) {
+    // 확장자/타입 추출 (iOS는 mov일 수 있음)
+    let thumbUri: string | null = null;
+    const ext = (fileUri.split(".").pop() || "mp4").toLowerCase();
+    const mime = ext === "mov" ? "video/quicktime" : "video/mp4";
+    console.log("Posted file1:", ext);
+    console.log("Posted file1", mime);
+    console.log("Endpoint:", `${API_BASE_URL}/users/onboarding`);
+    console.log("File URI:", fileUri);
+    const form = new FormData();
+    form.append("video", {
+      uri: fileUri,
+      name: `intro.${ext}`,
+      type: mime,
+    } as any);
+
+    if (thumbUri){
+      form.append("profileUrls", { uri: thumbUri, name: "thumb.jpg", type: "image/jpeg" } as any);
+    }
+    // fetch 타임아웃 처리
+    const controller = new AbortController();
+    const to = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+
+    try {
+      const { uri } = await VideoThumbnails.getThumbnailAsync(fileUri, {
+        time: 1500,
+        quality: 0.8,
+      });
+      thumbUri = uri;
+      console.log("Thumb URI:", thumbUri);
+    } catch (e) {
+      console.log("Thumbnail gen failed:", e);
+    }
+
+    try {
+      console.log("→ POST", `${API_BASE_URL}/users/onboarding`);
+      const res = await fetch(`${API_BASE_URL}/users/onboarding`, {
+        method: "POST",
+        headers: { Accept: "application/json" }, // Content-Type 지정하지 말 것
+        body: form,
+        signal: controller.signal,
+      });
+      clearTimeout(to);
+
+      const isJson = res.headers.get("content-type")?.includes("application/json");
+      const data = isJson ? await res.json() : await res.text();
+      console.log("status:", res.status, "body:", data);
+
+      if (!res.ok) throw new Error(typeof data === "string" ? data : data?.message || `HTTP ${res.status}`);
+      return data;
+    } catch (e) {
+      clearTimeout(to);
+      console.log("upload error:", e);
+      throw e;
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -124,6 +194,7 @@ export default function IntroRecordScreen() {
         style={StyleSheet.absoluteFillObject}
         facing="front"
         mode="video"
+        videoQuality="720p"
         onCameraReady={() => setReady(true)}
       />
 
@@ -185,7 +256,7 @@ export default function IntroRecordScreen() {
 
           <View pointerEvents="none" style={styles.bottomHelpWrap}>
             <View style={[styles.bottomHelpCard,{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }]}>
-              <Text style={styles.bottomHelpOrange}>이름 나이 취미는{" "}</Text>
+              <Text style={styles.bottomHelpOrange}>이름 나이 성별 관심사 취미는{" "}</Text>
               <Text style={styles.bottomHelpWhite}>필수 항목이에요!</Text>
             </View>
           </View>
