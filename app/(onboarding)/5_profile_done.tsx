@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { colors, typography } from "@/constants";
@@ -6,6 +6,15 @@ import { LinearGradient } from "expo-linear-gradient";
 
 export default function ProfileDone() {
   const router = useRouter();
+
+  useEffect(() => {
+        const timer = setTimeout(() => {
+          router.push("/(onboarding)/6_start");
+        }, 1500); // 1.5초 후 이동
+    
+        return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 해제
+    }, []);
+
   return (
     <View style={{ alignItems: "center", justifyContent: "center" }}>
 

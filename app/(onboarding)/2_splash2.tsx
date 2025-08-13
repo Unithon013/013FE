@@ -10,6 +10,7 @@ export default function Splash() {
   const router = useRouter();
   const bobY = useRef(new Animated.Value(0)).current;
 
+
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([

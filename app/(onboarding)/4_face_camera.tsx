@@ -4,7 +4,6 @@ import { CameraView, useCameraPermissions, useMicrophonePermissions} from "expo-
 import { useRouter } from "expo-router";
 import { colors, typography } from "@/constants";
 import { API_BASE_URL } from "@env";
-import * as VideoThumbnails from "expo-video-thumbnails";
 
 type Phase = "align" | "prep" | "recording" | "uploading";
 
@@ -131,14 +130,14 @@ export default function IntroRecordScreen() {
   const UPLOAD_TIMEOUT_MS = 120_000; // 30초 타임아웃
 
   async function uploadVideoWithThumb(fileUri: string) {
-    // 확장자/타입 추출 (iOS는 mov일 수 있음)
-    let thumbUri: string | null = null;
     const ext = (fileUri.split(".").pop() || "mp4").toLowerCase();
     const mime = ext === "mov" ? "video/quicktime" : "video/mp4";
+    
     console.log("Posted file1:", ext);
     console.log("Posted file1", mime);
     console.log("Endpoint:", `${API_BASE_URL}/users/onboarding`);
     console.log("File URI:", fileUri);
+
     const form = new FormData();
     form.append("video", {
       uri: fileUri,
@@ -146,23 +145,10 @@ export default function IntroRecordScreen() {
       type: mime,
     } as any);
 
-    if (thumbUri){
-      form.append("profileUrls", { uri: thumbUri, name: "thumb.jpg", type: "image/jpeg" } as any);
-    }
+    
     // fetch 타임아웃 처리
     const controller = new AbortController();
     const to = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
-
-    try {
-      const { uri } = await VideoThumbnails.getThumbnailAsync(fileUri, {
-        time: 1500,
-        quality: 0.8,
-      });
-      thumbUri = uri;
-      console.log("Thumb URI:", thumbUri);
-    } catch (e) {
-      console.log("Thumbnail gen failed:", e);
-    }
 
     try {
       console.log("→ POST", `${API_BASE_URL}/users/onboarding`);

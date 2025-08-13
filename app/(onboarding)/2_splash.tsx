@@ -15,6 +15,14 @@ export default function Splash() {
   const bobY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+      const timer = setTimeout(() => {
+        router.push("/(onboarding)/2_splash2");
+      }, 2000); // 2초 후 이동
+  
+      return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 해제
+  }, []);
+
+  useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(bobY, {
