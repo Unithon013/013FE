@@ -44,50 +44,89 @@ type Profile = {
   age: number;
   district: string;
   hobbies: string;
+  location: string;
   photo: string; // 이미지 URL 또는 require()
 };
 
-type Item = { kind: "profile"; profile: Profile } | { kind: "cta" }; //마지막 숨겨진 카드
+// ===== Common helpers for parsing API shapes =====
+const toAbs = (u: string | null | undefined) => {
+  if (!u) return "";
+  return u.startsWith("http") ? u : `${API_BASE_URL}${u}`;
+};
+const parseAge = (a: any) => {
+  if (typeof a === "number") return a;
+  if (typeof a === "string") {
+    const m = a.match(/\d+/);
+    return m ? parseInt(m[0], 10) : NaN;
+  }
+  return NaN;
+};
+const parseHobbies = (h: any): string => {
+  if (Array.isArray(h)) return h.filter(Boolean).join(", ");
+  if (typeof h === "string") {
+    try {
+      const arr = JSON.parse(h);
+      if (Array.isArray(arr)) return arr.filter(Boolean).join(", ");
+    } catch {}
+    return h
+      .split(/[\s,\n]+/)
+      .map((s: string) => s.replace(/[\[\]"]+/g, "").trim())
+      .filter(Boolean)
+      .join(", ");
+  }
+  return "";
+};
+const extractArray = (body: any): any[] | null => {
+  if (!body) return null;
+  if (Array.isArray(body)) return body;
+  if (Array.isArray(body.content)) return body.content;
+  if (Array.isArray(body.data)) return body.data;
+  if (Array.isArray(body.results)) return body.results;
+  return null;
+};
+const normalizeProfile = async (it: any, idx: number): Promise<Profile> => {
+  const id = String(it?.id ?? idx + 1);
+  const name = it?.name ?? "";
+  const age = parseAge(it?.age);
+  const district = it?.location ?? it?.district ?? "";
+  const locationStr = it?.location ?? it?.district ?? "";
+  const hobbies = parseHobbies(it?.hobbies);
+  const videoAbs = toAbs(it?.videoUrl ?? "");
 
-const DATA: Profile[] = [
-  {
-    id: "1",
-    name: "박막례",
-    age: 60,
-    district: "동작구",
-    hobbies: "탁구",
-    photo:
-      "https://images.unsplash.com/photo-1556761175-4b46a572b786?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: "2",
-    name: "김영희",
-    age: 72,
-    district: "성동구",
-    hobbies: "탁구",
-    photo:
-      "https://images.unsplash.com/photo-1598550476439-6847785fcea1?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: "3",
-    name: "이순자",
-    age: 70,
-    district: "관악구",
-    hobbies: "탁구",
-    photo:
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=1200&auto=format&fit=crop",
-  },
-];
+  let photo = toAbs(it?.profileUrl || "");
+  if (videoAbs) {
+    try {
+      const { uri } = await VideoThumbnails.getThumbnailAsync(videoAbs, {
+        time: 1000,
+      });
+      // use video thumbnail if available
+      if (uri) photo = uri;
+    } catch (e) {
+      console.log("[normalizeProfile] thumbnail error for", videoAbs, e);
+    }
+  }
+  return {
+    id,
+    name,
+    age: Number.isFinite(age) ? (age as number) : 0,
+    district,
+    hobbies,
+    location: locationStr,
+    photo,
+  };
+};
+// ================================================
 
 export default function HomeScreen() {
   const [index, setIndex] = useState(0);
   const navigation = useNavigation<any>();
-  const [profiles, setProfiles] = useState<Profile[]>(DATA); //프로필 리스트를 상태로
+  const [profiles, setProfiles] = useState<Profile[]>([]); // API 로딩 후 세팅
   const listRef = useRef<FlatList<Item>>(null);
   const insets = useSafeAreaInsets();
   const [meName, setMeName] = useState<string>("");
   const [meLat, setMeLat] = useState<number | null>(null);
   const [meLng, setMeLng] = useState<number | null>(null);
+  const [meId, setMeId] = useState<string | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -95,19 +134,11 @@ export default function HomeScreen() {
       try {
         // 위치가 필요한 API일 수 있으므로, 내 위치가 준비될 때까지 대기 (없어도 우선 시도)
         const base = `${API_BASE_URL}/recommendations`;
+        const userId = meId || "1"; // fallback for testing
         const headers = {
           Accept: "application/json",
-          // TODO: replace this test header with real auth header when ready
-          "X-User-Id": "5",
+          "X-User-Id": userId,
         } as const;
-
-        const extractArray = (body: any): any[] | null => {
-          if (Array.isArray(body)) return body;
-          if (body && Array.isArray(body.content)) return body.content;
-          if (body && Array.isArray(body.data)) return body.data;
-          if (body && Array.isArray(body.results)) return body.results;
-          return null;
-        };
 
         const tryFetch = async (url: string) => {
           console.log("[home recs] Fetching:", url);
@@ -124,10 +155,26 @@ export default function HomeScreen() {
             console.log("[home recs] Headers:", headersObj);
           }
           let body: any = null;
-          try {
-            body = await res.json();
-          } catch {}
-          console.log("[home recs] Body:", body);
+          const ctype = (res.headers as any)?.get
+            ? (res.headers as any).get("content-type")
+            : "";
+          if (ctype && String(ctype).includes("application/json")) {
+            try {
+              body = await res.json();
+            } catch {
+              body = null;
+            }
+            console.log("[home recs] Body(JSON):", body);
+          } else {
+            const text = await res.text().catch(() => "");
+            body = { _text: text };
+            console.log("[home recs] Body(TEXT):", text);
+          }
+          // stop early if server returned an error payload
+          if (body && typeof body === "object" && "error" in body) {
+            console.log("[home recs] Server error:", body.error);
+            return { res, body, list: null } as const;
+          }
           return { res, body, list: extractArray(body) } as const;
         };
 
@@ -161,67 +208,8 @@ export default function HomeScreen() {
         );
         if (!finalList || finalList.length === 0) return;
 
-        const toAbs = (u: string | null | undefined) => {
-          if (!u) return "";
-          return u.startsWith("http") ? u : `${API_BASE_URL}${u}`;
-        };
-        const parseAge = (a: any) => {
-          if (typeof a === "number") return a;
-          if (typeof a === "string") {
-            const m = a.match(/\d+/);
-            return m ? parseInt(m[0], 10) : NaN;
-          }
-          return NaN;
-        };
-        const parseHobbies = (h: any): string => {
-          if (Array.isArray(h)) return h.filter(Boolean).join(", ");
-          if (typeof h === "string") {
-            try {
-              const arr = JSON.parse(h);
-              if (Array.isArray(arr)) return arr.filter(Boolean).join(", ");
-            } catch {}
-            return h
-              .split(/[\s,\n]+/)
-              .map((s: string) => s.replace(/[\[\]"]+/g, "").trim())
-              .filter(Boolean)
-              .join(", ");
-          }
-          return "";
-        };
-
         const mapped = await Promise.all(
-          finalList.map(async (it: any, idx: number) => {
-            const id = String(it?.id ?? idx + 1);
-            const name = it?.name ?? "";
-            const age = parseAge(it?.age);
-            const district = it?.location ?? it?.district ?? "";
-            const hobbies = parseHobbies(it?.hobbies);
-            const videoAbs = toAbs(it?.videoUrl ?? "");
-
-            let thumb = "";
-            if (videoAbs) {
-              try {
-                const { uri } = await VideoThumbnails.getThumbnailAsync(
-                  videoAbs,
-                  { time: 1000 }
-                );
-                thumb = uri;
-              } catch (e) {
-                console.log("[home recs] thumbnail error for", videoAbs, e);
-              }
-            }
-            const photo = thumb || toAbs(it?.profileUrl || "");
-
-            const p: Profile = {
-              id,
-              name,
-              age: Number.isFinite(age) ? (age as number) : 0,
-              district,
-              hobbies,
-              photo,
-            };
-            return p;
-          })
+          finalList.map((it: any, idx: number) => normalizeProfile(it, idx))
         );
 
         if (!isCancelled) {
@@ -277,23 +265,69 @@ export default function HomeScreen() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const pendingScrollIndexRef = useRef<number | null>(null);
 
-  // 추천받기 눌렀을 때 더 불러오는 예 + 나중에 실제 API로 교체해야함!!
+  // 추천받기 눌렀을 때 더 불러오는 예 + 실제 API로 교체함
   async function fetchMore(n: number) {
-    // 실제 API 호출로 교체
-    const now = Date.now();
-    const more: Profile[] = Array.from({ length: n }).map((_, i) => ({
-      id: String(now + i),
-      name: ["박초롱", "김태리", "최영수", "정다빈", "한지우"][i % 5],
-      age: 25 + (i % 7),
-      district: ["용산구", "마포구", "강남구", "관악구"][i % 4],
-      hobbies: "탁구",
-      photo: `https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&auto=format&fit=crop&sig=${
-        now + i
-      }`,
-    }));
-    const prevLen = profiles.length;
-    setProfiles((prev) => [...prev, ...more]); // CTA 앞에 붙음
-    pendingScrollIndexRef.current = prevLen; // 첫 새 카드로 이동
+    try {
+      const url = `${API_BASE_URL}/recommendations/additional`;
+      console.log("[home recs additional] POST:", url, "count=", n);
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-User-Id": "22", // TODO: 실제 인증으로 교체
+        },
+        body: JSON.stringify({ count: String(n) }), // 스펙상 문자열
+      });
+
+      console.log("[home recs additional] Status:", res.status);
+      if (res.headers && typeof (res.headers as any).forEach === "function") {
+        const headersObj: Record<string, string> = {};
+        (res.headers as any).forEach(
+          (v: string, k: string) => (headersObj[k] = v)
+        );
+        console.log("[home recs additional] Headers:", headersObj);
+      }
+
+      // 본문 파싱 (JSON / TEXT 모두 로깅)
+      let body: any = null;
+      const ctype =
+        (res.headers as any)?.get?.call(res.headers, "content-type") || "";
+      if (String(ctype).includes("application/json")) {
+        try {
+          body = await res.json();
+        } catch {
+          body = null;
+        }
+        console.log("[home recs additional] Body(JSON):", body);
+      } else {
+        const text = await res.text().catch(() => "");
+        console.log("[home recs additional] Body(TEXT):", text);
+        body = null;
+      }
+
+      if (body && typeof body === "object" && "error" in body) {
+        console.log("[home recs additional] Server error:", body.error);
+        return;
+      }
+      const list = extractArray(body);
+      if (!list || list.length === 0) {
+        console.log("[home recs additional] No list returned");
+        return;
+      }
+
+      const more: Profile[] = await Promise.all(
+        list.map((it: any, idx: number) => normalizeProfile(it, idx))
+      );
+
+      // 리스트 뒤에 붙이고 첫 새 카드로 스크롤
+      const prevLen = profiles.length;
+      setProfiles((prev) => [...prev, ...more]);
+      pendingScrollIndexRef.current = prevLen;
+    } catch (e) {
+      console.log("[home recs additional] Fetch error:", e);
+    }
   }
 
   //추천받기 눌렀을 때 모달
@@ -437,7 +471,7 @@ export default function HomeScreen() {
           headers: {
             Accept: "application/json",
             // TODO: replace this test header with real auth header when ready
-            "X-User-Id": "5",
+            "X-User-Id": "22",
           },
         });
         console.log("[users/me] Status:", res.status);
@@ -448,13 +482,26 @@ export default function HomeScreen() {
           });
           console.log("[users/me] Headers:", headersObj);
         }
-        const data = await res.json().catch(() => ({}));
-        console.log("[users/me] JSON:", data);
+        const ctype =
+          (res.headers?.get && res.headers.get("content-type")) || "";
+        let data: any = {};
+        if (ctype.includes("application/json")) {
+          try {
+            data = await res.json();
+          } catch {
+            data = {};
+          }
+          console.log("[users/me] JSON:", data);
+        } else {
+          const text = await res.text().catch(() => "");
+          console.log("[users/me] TEXT:", text);
+        }
         setMeName((data as any)?.name || "");
         if (typeof (data as any)?.latitude === "number")
           setMeLat((data as any).latitude);
         if (typeof (data as any)?.longitude === "number")
           setMeLng((data as any).longitude);
+        setMeId(String((data as any)?.id || ""));
       } catch (e: any) {
         console.log("[users/me] Fetch error:", e?.name, e?.message);
       }
@@ -835,7 +882,11 @@ const styles = StyleSheet.create({
   },
   dragBar: {
     alignSelf: "center",
-    width: 200, height: 6, borderRadius: 3, backgroundColor: "#CFCFCF", marginBottom: 16,
+    width: 200,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#CFCFCF",
+    marginBottom: 16,
   },
   infoPill: {
     alignSelf: "stretch",

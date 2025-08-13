@@ -21,6 +21,8 @@ import {
 } from "react-native-safe-area-context";
 
 import { colors, typography } from "@/constants";
+import * as VideoThumbnails from "expo-video-thumbnails";
+import { Video as ExpoVideo, ResizeMode } from "expo-av";
 
 import { API_BASE_URL } from "@env";
 
@@ -71,7 +73,10 @@ export default function MypageScreen() {
   const [meAge, setMeAge] = useState("");
   const [meGender, setMeGender] = useState("");
   const [meHobbies, setMeHobbies] = useState<string[]>([]);
+  const [meLocation, setMeLocation] = useState<string>("");
   const [videoUrl, setVideoUrl] = useState<string>("");
+  const [meProfileUrl, setMeProfileUrl] = useState<string>("");
+  const [avatarUri, setAvatarUri] = useState<string>("");
 
   useEffect(() => {
     const fetchMe = async () => {
@@ -83,15 +88,30 @@ export default function MypageScreen() {
           headers: {
             Accept: "application/json",
             // TODO: replace this test header with real auth header when ready
-            "X-User-Id": "5",
+            "X-User-Id": "26",
           },
         });
         console.log("[mypage users/me] Status:", res.status);
-        const data = await res.json();
-        console.log("[mypage users/me] JSON:", data);
+        const ctype =
+          (res.headers?.get && res.headers.get("content-type")) || "";
+        let data: any = {};
+        if (ctype.includes("application/json")) {
+          try {
+            data = await res.json();
+          } catch {
+            data = {};
+          }
+          console.log("[mypage users/me] JSON:", data);
+        } else {
+          const text = await res.text().catch(() => "");
+          console.log("[mypage users/me] TEXT:", text);
+        }
 
         // name
         setMeName(data?.name ?? "");
+        setMeLocation(
+          (data?.location as string) || (data?.district as string) || ""
+        );
 
         // age: allow "83세" or number
         let ageNum = "";
@@ -133,6 +153,15 @@ export default function MypageScreen() {
         }
         setMeHobbies(hobbiesArr);
 
+        // profileUrl: absolute (fallback image)
+        const rawProfile = data?.profileUrl ?? "";
+        const absoluteProfile = rawProfile
+          ? rawProfile.startsWith("http")
+            ? rawProfile
+            : `${API_BASE_URL}${rawProfile}`
+          : "";
+        setMeProfileUrl(absoluteProfile);
+
         // videoUrl: may be relative like "/media/..."
         const rawVideo = data?.videoUrl ?? "";
         const absoluteVideo = rawVideo
@@ -141,6 +170,21 @@ export default function MypageScreen() {
             : `${API_BASE_URL}${rawVideo}`
           : "";
         setVideoUrl(absoluteVideo);
+
+        // avatar thumbnail: prefer video thumbnail, fallback to profileUrl
+        try {
+          if (absoluteVideo) {
+            const { uri } = await VideoThumbnails.getThumbnailAsync(
+              absoluteVideo,
+              { time: 1000 }
+            );
+            if (uri) setAvatarUri(uri);
+          }
+        } catch (err) {
+          console.log("[mypage] thumbnail error:", err);
+        } finally {
+          if (!avatarUri && absoluteProfile) setAvatarUri(absoluteProfile);
+        }
       } catch (e) {
         console.log("[mypage users/me] Fetch error:", e);
       }
@@ -157,7 +201,15 @@ export default function MypageScreen() {
       <View style={styles.topHero}>
         <View style={styles.textWrapper}>
           <View style={styles.avatarCircle}>
-            <SoongsilKim />
+            {avatarUri ? (
+              <ImageBackground
+                source={{ uri: avatarUri }}
+                style={{ width: "100%", height: "100%" }}
+                resizeMode="cover"
+              />
+            ) : (
+              <SoongsilKim />
+            )}
           </View>
           <View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -168,6 +220,11 @@ export default function MypageScreen() {
               {meGender ? ` / ${meGender}` : " / 혼성"}
             </Text>
             <View style={styles.tagsRow}>
+              {meLocation ? (
+                <View key="__loc" style={styles.tagChip}>
+                  <Text style={styles.tagChipText}>{meLocation}</Text>
+                </View>
+              ) : null}
               {meHobbies.map((tag) => (
                 <View key={tag} style={styles.tagChip}>
                   <Text style={styles.tagChipText}>{tag}</Text>
@@ -214,10 +271,13 @@ export default function MypageScreen() {
         {tab === "video" ? (
           <ScrollView>
             {videoUrl ? (
-              <ImageBackground
+              <ExpoVideo
                 source={{ uri: videoUrl }}
                 style={styles.videoCard}
-                resizeMode="cover"
+                resizeMode={ResizeMode.COVER}
+                useNativeControls
+                shouldPlay={false}
+                isLooping={false}
               />
             ) : typeof Video === "number" ||
               (Video &&
@@ -230,7 +290,7 @@ export default function MypageScreen() {
               />
             ) : (
               <View style={styles.videoCard}>
-                <Video width="100%" height={379} />
+                <Video />
               </View>
             )}
             <Pressable
@@ -374,7 +434,8 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
   },
   videoCard: {
-    width: "100%",
+    marginHorizontal: 20,
+    width: "90%",
     height: 391,
     alignSelf: "center",
     borderRadius: 16,

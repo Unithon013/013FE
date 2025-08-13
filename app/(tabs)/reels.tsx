@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as DocumentPicker from "expo-document-picker";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { API_BASE_URL } from "@env";
 import {
